@@ -101,6 +101,8 @@ export function ModelScreen(props: ModelScreenProps) {
       IModelApp.tools.run(FitViewTool.toolId, IModelApp.viewManager.getFirstOpenView(), true);
     }
     const handleTakePicture = async () => {
+      const images = await Messenger.query("getImages", { iModelId: iModel.iModelId });
+      console.log(`Existing images: ${JSON.stringify(images, undefined, 2)}`);
       setImageURL(await Messenger.query("ImagePicker", { iModelId: iModel.iModelId }));
     }
     const actions: AlertAction[] =
@@ -211,6 +213,11 @@ export function ModelScreen(props: ModelScreenProps) {
     loadViewState();
   }, [iModel.views, isMountedRef]);
 
+  const onClickImage = React.useCallback((e: React.MouseEvent<HTMLImageElement>) => {
+    e.stopPropagation();
+    setImageURL(undefined);
+  }, []);
+
   // Note: Changes to the [[viewState]] field of [[ViewportProps]] are ignored after the component is
   // first created. So don't create the [[ViewportComponent]] until after we have loaded the default
   // view state.
@@ -234,7 +241,7 @@ export function ModelScreen(props: ModelScreenProps) {
             </>
           }
         />
-        {imageURL && <ModelImageView path={imageURL} />}
+        {imageURL && <ModelImageView path={imageURL} onClick={onClickImage} />}
         <ToolAssistance />
         {tabsAndPanelsAPI.renderTabBarAndPanels()}
       </MobileUiContent >
@@ -244,10 +251,12 @@ export function ModelScreen(props: ModelScreenProps) {
 
 interface ModelImageViewProps {
   path: string;
+  onClick?: (e: React.MouseEvent<HTMLImageElement>) => void;
 }
 
 function ModelImageView(props: ModelImageViewProps) {
-  return <img className="model-image-view" src={props.path} alt="" />;
+  const { path, onClick } = props;
+  return <img className="model-image-view" src={path} onClick={onClick} alt="" />;
 }
 
 export interface HeaderTitleProps {

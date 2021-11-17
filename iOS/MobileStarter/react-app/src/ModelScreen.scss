@@ -30,9 +30,10 @@
 }
 
 .model-image-view {
+  pointer-events: auto;
   position: absolute;
   right: 20px;
-  bottom: 20px;
-  width: 300px;
-  height: 300px;
+  bottom: 100px;
+  max-width: 300px;
+  max-height: 300px;
 }
