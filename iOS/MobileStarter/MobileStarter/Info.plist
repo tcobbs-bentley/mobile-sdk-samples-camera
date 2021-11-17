@@ -104,6 +104,8 @@
 	</dict>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Demonstrate Geolocation Polyfill</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Take pictures to show with iModels</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		1F2D7B642742D38B00AAB11E /* PrintLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F2D7B632742D38B00AAB11E /* PrintLogger.swift */; };
+		1F5726672744772200C53437 /* ImagePicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F5726662744772200C53437 /* ImagePicker.swift */; };
 		1FC11154261FC44900835E6E /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FC11153261FC44900835E6E /* AppDelegate.swift */; };
 		1FC11156261FC44900835E6E /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FC11155261FC44900835E6E /* SceneDelegate.swift */; };
 		1FC1115B261FC44900835E6E /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 1FC11159261FC44900835E6E /* Main.storyboard */; };
@@ -20,8 +21,9 @@
 
 /* Begin PBXFileReference section */
 		1F2D7B632742D38B00AAB11E /* PrintLogger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrintLogger.swift; sourceTree = "<group>"; };
+		1F5726662744772200C53437 /* ImagePicker.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ImagePicker.swift; sourceTree = "<group>"; };
 		1F6EB10C26D46210003BA335 /* ITMApplication.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = ITMApplication.xcconfig; path = ../ITMApplication.xcconfig; sourceTree = "<group>"; };
-		1FC11150261FC44900835E6E /* iTwin Starter.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "iTwin Starter.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		1FC11150261FC44900835E6E /* iTwin CamSample.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "iTwin CamSample.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		1FC11153261FC44900835E6E /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		1FC11155261FC44900835E6E /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
 		1FC1115A261FC44900835E6E /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
@@ -62,7 +64,7 @@
 		1FC11151261FC44900835E6E /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				1FC11150261FC44900835E6E /* iTwin Starter.app */,
+				1FC11150261FC44900835E6E /* iTwin CamSample.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -85,6 +87,7 @@
 			isa = PBXGroup;
 			children = (
 				5FD7518626DD9DCD00DC3060 /* DocumentPicker.swift */,
+				1F5726662744772200C53437 /* ImagePicker.swift */,
 				5FD7518726DD9DCD00DC3060 /* ModelApplication.swift */,
 				1F2D7B632742D38B00AAB11E /* PrintLogger.swift */,
 			);
@@ -114,7 +117,7 @@
 				1FF1B9AB26BDCC35006D6385 /* ITwinMobile */,
 			);
 			productName = MobileStarter;
-			productReference = 1FC11150261FC44900835E6E /* iTwin Starter.app */;
+			productReference = 1FC11150261FC44900835E6E /* iTwin CamSample.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -215,6 +218,7 @@
 				1FC11154261FC44900835E6E /* AppDelegate.swift in Sources */,
 				5FD7518826DD9DCD00DC3060 /* DocumentPicker.swift in Sources */,
 				5FD7518926DD9DCD00DC3060 /* ModelApplication.swift in Sources */,
+				1F5726672744772200C53437 /* ImagePicker.swift in Sources */,
 				1F2D7B642742D38B00AAB11E /* PrintLogger.swift in Sources */,
 				1FC11156261FC44900835E6E /* SceneDelegate.swift in Sources */,
 			);
@@ -372,8 +376,8 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.bentley.sample.MobileStarter;
-				PRODUCT_NAME = "iTwin Starter";
+				PRODUCT_BUNDLE_IDENTIFIER = com.bentley.sample.camera;
+				PRODUCT_NAME = "iTwin CamSample";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -391,8 +395,8 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.bentley.sample.MobileStarter;
-				PRODUCT_NAME = "iTwin Starter";
+				PRODUCT_BUNDLE_IDENTIFIER = com.bentley.sample.camera;
+				PRODUCT_NAME = "iTwin CamSample";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};

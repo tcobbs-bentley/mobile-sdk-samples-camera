@@ -8,7 +8,7 @@ import { FitViewTool, IModelApp, IModelConnection, ViewState } from "@bentley/im
 import { ViewportComponent } from "@bentley/ui-components";
 import { getCssVariable, IconSpec } from "@bentley/ui-core";
 import { viewWithUnifiedSelection } from "@bentley/presentation-components";
-import { AlertAction, presentAlert } from "@itwin/mobile-sdk-core";
+import { AlertAction, Messenger, presentAlert } from "@itwin/mobile-sdk-core";
 import {
   ActionSheetButton,
   IconImage,
@@ -50,12 +50,14 @@ export function updateBackgroundColor(viewState: ViewState) {
 export function ModelScreen(props: ModelScreenProps) {
   const tabsAndPanelsAPI = useTabsAndStandAlonePanels();
   const { filename, iModel, onBack } = props;
+  const [imageURL, setImageURL] = React.useState<string>();
   const [viewState, setViewState] = React.useState<ViewState>();
   const locationLabel = React.useMemo(() => i18n("ModelScreen", "Location"), []);
   const errorLabel = React.useMemo(() => i18n("Shared", "Error"), []);
   const okLabel = React.useMemo(() => i18n("Shared", "OK"), []);
   const showCurrentLocationLabel = React.useMemo(() => i18n("ModelScreen", "ShowCurrentLocation"), []);
   const fitViewLabel = React.useMemo(() => i18n("ModelScreen", "FitView"), []);
+  const takePictureLabel = React.useMemo(() => i18n("ModelScreen", "TakePicture"), []);
   const infoLabel = React.useMemo(() => i18n("ModelScreen", "Info"), []);
   const aboutLabel = React.useMemo(() => i18n("ModelScreen", "About"), []);
   const viewsLabel = React.useMemo(() => i18n("ModelScreen", "Views"), []);
@@ -98,6 +100,9 @@ export function ModelScreen(props: ModelScreenProps) {
     const handleFitView = () => {
       IModelApp.tools.run(FitViewTool.toolId, IModelApp.viewManager.getFirstOpenView(), true);
     }
+    const handleTakePicture = async () => {
+      setImageURL(await Messenger.query("ImagePicker", { iModelId: iModel.iModelId }));
+    }
     const actions: AlertAction[] =
       [
         {
@@ -110,6 +115,11 @@ export function ModelScreen(props: ModelScreenProps) {
           title: fitViewLabel,
           onSelected: handleFitView,
         },
+        {
+          name: "takePicture",
+          title: takePictureLabel,
+          onSelected: handleTakePicture,
+        }
       ];
 
     if (IModelApp.viewManager.getFirstOpenView()?.view.iModel.selectionSet.isActive) {
@@ -224,11 +234,20 @@ export function ModelScreen(props: ModelScreenProps) {
             </>
           }
         />
+        {imageURL && <ModelImageView path={imageURL} />}
         <ToolAssistance />
         {tabsAndPanelsAPI.renderTabBarAndPanels()}
       </MobileUiContent >
     </>
   );
+}
+
+interface ModelImageViewProps {
+  path: string;
+}
+
+function ModelImageView(props: ModelImageViewProps) {
+  return <img className="model-image-view" src={props.path} alt="" />;
 }
 
 export interface HeaderTitleProps {
