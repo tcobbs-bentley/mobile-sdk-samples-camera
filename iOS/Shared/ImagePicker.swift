@@ -72,34 +72,6 @@ class ImagePicker: ITMNativeUIComponent {
         viewController.present(picker, animated: true, completion: nil)
         return presentedPromise
     }
-    
-    /// Write a `UIImage` to the the given file URL.
-    /// - Parameters:
-    ///   - image: The `UIImage` to write to cache.
-    ///   - url: The file URL to which to write the image.
-    ///   - metadata: Metadata to include in the image.
-    func writeImage(_ image: UIImage, to url: URL, with metadata: NSDictionary?) throws {
-        // Generate JPEG data for the UIImage.
-        guard let imageData = image.jpegData(compressionQuality: 0.85) else { throw ITMError(json: ["message": "Error converting UIImage to JPEG."]) }
-        guard let source = CGImageSourceCreateWithData(imageData as CFData, nil) else { throw ITMError(json: ["message": "Error creating image source from JPEG data."]) }
-        guard let type = CGImageSourceGetType(source) else { throw ITMError(json: ["message": "Error getting type from image source."]) }
-
-        guard let destination: CGImageDestination = CGImageDestinationCreateWithURL(url as CFURL, type, 1, nil) else { throw ITMError(json: ["message": "Error creating image destination."]) }
-        CGImageDestinationAddImageFromSource(destination, source, 0, metadata as CFDictionary?)
-        if !CGImageDestinationFinalize(destination) {
-            throw ITMError(json: ["message": "Error writing JPEG data."])
-        }
-    }
-    
-    /// The baseURL to use to store images.
-    static var baseURL: URL? {
-        get {
-            guard let cachesDir = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).last else {
-                return nil
-            }
-            return cachesDir.appendingPathComponent("images")
-        }
-    }
 }
 
 /// `UIImagePickerController`'s delgate must implement these protocols.
@@ -136,7 +108,7 @@ extension ImagePicker: UIImagePickerControllerDelegate, UINavigationControllerDe
         // Use a timestamp for the filename.
         let filename = "\(dateFmt.string(from: Date())).jpg"
         do {
-            let baseURL = ImagePicker.baseURL!
+            let baseURL = ImageCache.baseURL!
             let iModelId = self.iModelId!
             // The file will be stored in <Caches>/images/<iModelId>/. All pictures for a given iModel end up in the same directory.
             let dirUrl = baseURL.appendingPathComponent(iModelId)
@@ -144,7 +116,7 @@ extension ImagePicker: UIImagePickerControllerDelegate, UINavigationControllerDe
             try FileManager.default.createDirectory(at: dirUrl, withIntermediateDirectories: true, attributes: nil)
             let fileUrl = dirUrl.appendingPathComponent(filename)
             // Write the UIImage to the given filename.
-            try writeImage(image, to: fileUrl, with: info[.mediaMetadata] as? NSDictionary)
+            try ImageCache.writeImage(image, to: fileUrl, with: info[.mediaMetadata] as? NSDictionary)
             // Fulfill the promise with a custom URL scheme URL of the form:
             // com.bentley.itms-image-cache://<iModelId>/<filename>
             // The custom ImageCacheSchemeHandler will convert that back into a file URL and then load that file.
@@ -164,7 +136,7 @@ class ImageCacheSchemeHandler: NSObject, WKURLSchemeHandler {
     /// `WKURLSchemeHandler` protocol method.
     func webView(_ webView: WKWebView, start urlSchemeTask: WKURLSchemeTask) {
         guard let cachePath = cachePath(from: urlSchemeTask),
-              let baseURLString = ImagePicker.baseURL?.absoluteString,
+              let baseURLString = ImageCache.baseURL?.absoluteString,
               let fileURL = URL(string: "\(baseURLString)\(cachePath)") else {
             ITMAssetHandler.cancelWithFileNotFound(urlSchemeTask: urlSchemeTask)
             return
@@ -192,3 +164,48 @@ class ImageCacheSchemeHandler: NSObject, WKURLSchemeHandler {
     }
 }
 
+class ImageCache {
+    static func handleGetImages(params: [String: Any]) -> Promise<[String]> {
+        guard let iModelId = params["iModelId"] as? String, let dirURL = baseURL?.appendingPathComponent(iModelId) else {
+            return Promise.value([])
+        }
+        let fm = FileManager.default
+        var results: [String] = []
+        let prefix = "\(ImageCacheSchemeHandler.urlScheme)://\(iModelId)/"
+        if let allURLs = try? fm.contentsOfDirectory(at: dirURL, includingPropertiesForKeys: nil) {
+            for url in allURLs {
+                let urlString = NSString(string: "\(url)")
+                results.append("\(prefix)\(urlString.lastPathComponent)")
+            }
+        }
+        return Promise.value(results)
+    }
+    
+    /// The baseURL to use to store images.
+    static var baseURL: URL? {
+        get {
+            guard let cachesDir = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).last else {
+                return nil
+            }
+            return cachesDir.appendingPathComponent("images")
+        }
+    }
+    
+    /// Write a `UIImage` to the the given file URL.
+    /// - Parameters:
+    ///   - image: The `UIImage` to write to cache.
+    ///   - url: The file URL to which to write the image.
+    ///   - metadata: Metadata to include in the image.
+    static func writeImage(_ image: UIImage, to url: URL, with metadata: NSDictionary?) throws {
+        // Generate JPEG data for the UIImage.
+        guard let imageData = image.jpegData(compressionQuality: 0.85) else { throw ITMError(json: ["message": "Error converting UIImage to JPEG."]) }
+        guard let source = CGImageSourceCreateWithData(imageData as CFData, nil) else { throw ITMError(json: ["message": "Error creating image source from JPEG data."]) }
+        guard let type = CGImageSourceGetType(source) else { throw ITMError(json: ["message": "Error getting type from image source."]) }
+
+        guard let destination: CGImageDestination = CGImageDestinationCreateWithURL(url as CFURL, type, 1, nil) else { throw ITMError(json: ["message": "Error creating image destination."]) }
+        CGImageDestinationAddImageFromSource(destination, source, 0, metadata as CFDictionary?)
+        if !CGImageDestinationFinalize(destination) {
+            throw ITMError(json: ["message": "Error writing JPEG data."])
+        }
+    }
+}

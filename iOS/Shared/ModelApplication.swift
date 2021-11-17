@@ -34,8 +34,9 @@ class ModelApplication: ITMApplication {
                 return Promise.value(DocumentHelper.getDocumentsWith(extension: "bim"))
             }
         }
+        registerQueryHandler("getImages", ImageCache.handleGetImages)
     }
-    
+
     /// Called when the `ITMViewController` will appear.
     ///
     /// Adds our DocumentPicker component to the native UI collection.
