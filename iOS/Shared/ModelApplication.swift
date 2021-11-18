@@ -35,6 +35,7 @@ class ModelApplication: ITMApplication {
             }
         }
         registerQueryHandler("getImages", ImageCache.handleGetImages)
+        registerQueryHandler("deleteImages", ImageCache.handleDeleteImages)
     }
 
     /// Called when the `ITMViewController` will appear.

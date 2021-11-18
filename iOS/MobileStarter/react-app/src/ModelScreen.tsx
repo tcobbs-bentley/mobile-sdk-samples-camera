@@ -58,6 +58,7 @@ export function ModelScreen(props: ModelScreenProps) {
   const showCurrentLocationLabel = React.useMemo(() => i18n("ModelScreen", "ShowCurrentLocation"), []);
   const fitViewLabel = React.useMemo(() => i18n("ModelScreen", "FitView"), []);
   const takePictureLabel = React.useMemo(() => i18n("ModelScreen", "TakePicture"), []);
+  const deletePicturesLabel = React.useMemo(() => i18n("ModelScreen", "DeletePictures"), []);
   const infoLabel = React.useMemo(() => i18n("ModelScreen", "Info"), []);
   const aboutLabel = React.useMemo(() => i18n("ModelScreen", "About"), []);
   const viewsLabel = React.useMemo(() => i18n("ModelScreen", "Views"), []);
@@ -69,7 +70,7 @@ export function ModelScreen(props: ModelScreenProps) {
   // Passing an arrow function as the actions instead of the array itself allows for the list
   // of actions to be dynamic. In this case, the element properties action is only shown if the
   // selection set is active.
-  const moreActions = () => {
+  const moreActions = async () => {
     const handleShowLocation = () => {
       // Ask for the device's current location, then show the latitude and longitude to the user.
       // Note that this makes use of a Geolocation Polyfill to work around the fact that the web
@@ -101,36 +102,45 @@ export function ModelScreen(props: ModelScreenProps) {
       IModelApp.tools.run(FitViewTool.toolId, IModelApp.viewManager.getFirstOpenView(), true);
     }
     const handleTakePicture = async () => {
-      const images = await Messenger.query("getImages", { iModelId: iModel.iModelId });
-      console.log(`Existing images: ${JSON.stringify(images, undefined, 2)}`);
       setImageURL(await Messenger.query("ImagePicker", { iModelId: iModel.iModelId }));
     }
-    const actions: AlertAction[] =
-      [
-        {
-          name: "location",
-          title: showCurrentLocationLabel,
-          onSelected: handleShowLocation,
-        },
-        {
-          name: "fitView",
-          title: fitViewLabel,
-          onSelected: handleFitView,
-        },
-        {
-          name: "takePicture",
-          title: takePictureLabel,
-          onSelected: handleTakePicture,
-        }
-      ];
+    const handleDeletePictures = async () => {
+      return Messenger.query("deleteImages", { iModelId: iModel.iModelId });
+    }
+    const getImages = async (): Promise<string[]> => {
+      return Messenger.query("getImages", { iModelId: iModel.iModelId });
+    }
+    const actions: AlertAction[] = [
+      {
+        name: "location",
+        title: showCurrentLocationLabel,
+        onSelected: handleShowLocation,
+      },
+      {
+        name: "fitView",
+        title: fitViewLabel,
+        onSelected: handleFitView,
+      },
+      {
+        name: "takePicture",
+        title: takePictureLabel,
+        onSelected: handleTakePicture,
+      }
+    ];
 
+    if ((await getImages()).length > 0) {
+      actions.push({
+        name: "deletePictures",
+        title: deletePicturesLabel,
+        onSelected: handleDeletePictures,
+      });
+    }
     if (IModelApp.viewManager.getFirstOpenView()?.view.iModel.selectionSet.isActive) {
-      actions.push(
-        {
-          name: elementPropertiesLabel,
-          title: elementPropertiesLabel,
-          onSelected: () => { tabsAndPanelsAPI.openPanel(elementPropertiesLabel) },
-        });
+      actions.push({
+        name: elementPropertiesLabel,
+        title: elementPropertiesLabel,
+        onSelected: () => { tabsAndPanelsAPI.openPanel(elementPropertiesLabel) },
+      });
     }
     return actions;
   };

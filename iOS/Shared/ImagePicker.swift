@@ -181,6 +181,21 @@ class ImageCache {
         return Promise.value(results)
     }
     
+    static func handleDeleteImages(params: [String: Any]) -> Promise<()> {
+        guard let iModelId = params["iModelId"] as? String, let dirURL = baseURL?.appendingPathComponent(iModelId) else {
+            return Promise.value(())
+        }
+        let fm = FileManager.default
+        if let allURLs = try? fm.contentsOfDirectory(at: dirURL, includingPropertiesForKeys: nil) {
+            for url in allURLs {
+                do {
+                    try fm.removeItem(at: url)
+                } catch {}
+            }
+        }
+        return Promise.value(())
+    }
+
     /// The baseURL to use to store images.
     static var baseURL: URL? {
         get {

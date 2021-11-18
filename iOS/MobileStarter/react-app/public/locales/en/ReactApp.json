@@ -45,7 +45,8 @@
     "Views": "Views",
     "Properties": "Properties",
     "Tools": "Tools",
-    "TakePicture": "Take Picture"
+    "TakePicture": "Take Picture",
+    "DeletePictures": "Delete Pictures"
   },
   "AboutBottomPanel": {
     "About": "About",
