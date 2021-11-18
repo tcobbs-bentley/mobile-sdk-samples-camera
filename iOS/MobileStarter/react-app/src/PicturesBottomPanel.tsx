@@ -3,6 +3,7 @@
 * See LICENSE.md in the project root for license terms and full copyright notice.
 *--------------------------------------------------------------------------------------------*/
 import React from "react";
+import ReactDOM from "react-dom";
 import { IModelConnection } from "@bentley/imodeljs-frontend";
 import { ActionStyle, Messenger, presentAlert, ReloadedEvent } from "@itwin/mobile-sdk-core";
 import { DraggableComponent, NavigationButton, ResizableBottomPanel, ResizableBottomPanelProps } from "@itwin/mobile-ui-react";
@@ -28,6 +29,7 @@ export function PicturesBottomPanel(props: PicturesBottomPanelProps) {
   const picturesLabel = React.useMemo(() => i18n("PicturesBottomPanel", "Pictures"), []);
   const reloadedEvent = React.useRef(new ReloadedEvent());
   const [pictureUrls, setPictureUrls] = React.useState<string[]>([]);
+  const [selectedPictureUrl, setSelectedPictureUrl] = React.useState<string>();
 
   const reload = React.useCallback(async () => {
     const urls: string[] = await Messenger.query("getImages", { iModelId: iModel.iModelId });
@@ -41,7 +43,7 @@ export function PicturesBottomPanel(props: PicturesBottomPanelProps) {
   }, [reload]);
 
   const handlePictureSelected = React.useCallback((pictureUrl: string) => {
-    console.log(`Picture selected: ${pictureUrl}`);
+    setSelectedPictureUrl(pictureUrl);
     onPictureSelected?.(pictureUrl);
   }, [onPictureSelected]);
 
@@ -99,6 +101,11 @@ export function PicturesBottomPanel(props: PicturesBottomPanelProps) {
     </div>
   );
 
+  const handlePictureViewClick = React.useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    e.stopPropagation();
+    setSelectedPictureUrl(undefined);
+  }, []);
+
   return (
     <ResizableBottomPanel
       {...otherProps}
@@ -118,6 +125,23 @@ export function PicturesBottomPanel(props: PicturesBottomPanelProps) {
           {dummyItems}
         </div>
       </div>
+      {selectedPictureUrl && <PictureView url={selectedPictureUrl} onClick={handlePictureViewClick} />}
     </ResizableBottomPanel>
   );
+}
+
+interface PictureViewProps {
+  url: string;
+  onClick?: (e: React.MouseEvent<HTMLDivElement>) => void;
+}
+
+function PictureView(props: PictureViewProps) {
+  const { url, onClick } = props;
+  const portalDiv = (
+    <div className="picture-view">
+      <img src={url} onClick={onClick} alt="" />
+    </div>
+  );
+  const rootElement = document.getElementById("root");
+  return ReactDOM.createPortal(portalDiv, rootElement!);
 }

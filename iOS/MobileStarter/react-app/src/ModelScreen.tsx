@@ -59,7 +59,6 @@ export function updateBackgroundColor(viewState: ViewState) {
 export function ModelScreen(props: ModelScreenProps) {
   const tabsAndPanelsAPI = useTabsAndStandAlonePanels();
   const { filename, iModel, onBack } = props;
-  const [imageURL, setImageURL] = React.useState<string>();
   const [viewState, setViewState] = React.useState<ViewState>();
   const locationLabel = React.useMemo(() => i18n("ModelScreen", "Location"), []);
   const errorLabel = React.useMemo(() => i18n("Shared", "Error"), []);
@@ -215,11 +214,6 @@ export function ModelScreen(props: ModelScreenProps) {
     loadViewState();
   }, [iModel.views, isMountedRef]);
 
-  const onClickImage = React.useCallback((e: React.MouseEvent<HTMLImageElement>) => {
-    e.stopPropagation();
-    setImageURL(undefined);
-  }, []);
-
   // Note: Changes to the [[viewState]] field of [[ViewportProps]] are ignored after the component is
   // first created. So don't create the [[ViewportComponent]] until after we have loaded the default
   // view state.
@@ -243,22 +237,11 @@ export function ModelScreen(props: ModelScreenProps) {
             </>
           }
         />
-        {imageURL && <ModelImageView path={imageURL} onClick={onClickImage} />}
         <ToolAssistance />
         {tabsAndPanelsAPI.renderTabBarAndPanels()}
       </MobileUiContent >
     </>
   );
-}
-
-interface ModelImageViewProps {
-  path: string;
-  onClick?: (e: React.MouseEvent<HTMLImageElement>) => void;
-}
-
-function ModelImageView(props: ModelImageViewProps) {
-  const { path, onClick } = props;
-  return <img className="model-image-view" src={path} onClick={onClick} alt="" />;
 }
 
 export interface HeaderTitleProps {
