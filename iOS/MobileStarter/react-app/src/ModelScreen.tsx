@@ -8,7 +8,7 @@ import { FitViewTool, IModelApp, IModelConnection, ViewState } from "@bentley/im
 import { ViewportComponent } from "@bentley/ui-components";
 import { getCssVariable, IconSpec } from "@bentley/ui-core";
 import { viewWithUnifiedSelection } from "@bentley/presentation-components";
-import { AlertAction, Messenger, presentAlert } from "@itwin/mobile-sdk-core";
+import { AlertAction, presentAlert } from "@itwin/mobile-sdk-core";
 import {
   ActionSheetButton,
   IconImage,
@@ -21,7 +21,16 @@ import {
   useTabsAndStandAlonePanels,
   VisibleBackButton,
 } from "@itwin/mobile-ui-react";
-import { AboutBottomPanel, ToolAssistance, ElementPropertiesPanel, i18n, InfoBottomPanel, ToolsBottomPanel, ViewsBottomPanel } from "./Exports";
+import {
+  AboutBottomPanel,
+  ToolAssistance,
+  ElementPropertiesPanel,
+  i18n,
+  InfoBottomPanel,
+  PicturesBottomPanel,
+  ToolsBottomPanel,
+  ViewsBottomPanel
+} from "./Exports";
 import "./ModelScreen.scss";
 
 // tslint:disable-next-line: variable-name
@@ -57,11 +66,10 @@ export function ModelScreen(props: ModelScreenProps) {
   const okLabel = React.useMemo(() => i18n("Shared", "OK"), []);
   const showCurrentLocationLabel = React.useMemo(() => i18n("ModelScreen", "ShowCurrentLocation"), []);
   const fitViewLabel = React.useMemo(() => i18n("ModelScreen", "FitView"), []);
-  const takePictureLabel = React.useMemo(() => i18n("ModelScreen", "TakePicture"), []);
-  const deletePicturesLabel = React.useMemo(() => i18n("ModelScreen", "DeletePictures"), []);
   const infoLabel = React.useMemo(() => i18n("ModelScreen", "Info"), []);
   const aboutLabel = React.useMemo(() => i18n("ModelScreen", "About"), []);
   const viewsLabel = React.useMemo(() => i18n("ModelScreen", "Views"), []);
+  const picturesLabel = React.useMemo(() => i18n("ModelScreen", "Pictures"), []);
   const toolsLabel = React.useMemo(() => i18n("ModelScreen", "Tools"), []);
   const elementPropertiesLabel = React.useMemo(() => i18n("ModelScreen", "Properties"), []);
   // Any time we do anything asynchronous, we have to check if the component is still mounted,
@@ -70,7 +78,7 @@ export function ModelScreen(props: ModelScreenProps) {
   // Passing an arrow function as the actions instead of the array itself allows for the list
   // of actions to be dynamic. In this case, the element properties action is only shown if the
   // selection set is active.
-  const moreActions = async () => {
+  const moreActions = () => {
     const handleShowLocation = () => {
       // Ask for the device's current location, then show the latitude and longitude to the user.
       // Note that this makes use of a Geolocation Polyfill to work around the fact that the web
@@ -101,15 +109,6 @@ export function ModelScreen(props: ModelScreenProps) {
     const handleFitView = () => {
       IModelApp.tools.run(FitViewTool.toolId, IModelApp.viewManager.getFirstOpenView(), true);
     }
-    const handleTakePicture = async () => {
-      setImageURL(await Messenger.query("ImagePicker", { iModelId: iModel.iModelId }));
-    }
-    const handleDeletePictures = async () => {
-      return Messenger.query("deleteImages", { iModelId: iModel.iModelId });
-    }
-    const getImages = async (): Promise<string[]> => {
-      return Messenger.query("getImages", { iModelId: iModel.iModelId });
-    }
     const actions: AlertAction[] = [
       {
         name: "location",
@@ -121,20 +120,8 @@ export function ModelScreen(props: ModelScreenProps) {
         title: fitViewLabel,
         onSelected: handleFitView,
       },
-      {
-        name: "takePicture",
-        title: takePictureLabel,
-        onSelected: handleTakePicture,
-      }
     ];
 
-    if ((await getImages()).length > 0) {
-      actions.push({
-        name: "deletePictures",
-        title: deletePicturesLabel,
-        onSelected: handleDeletePictures,
-      });
-    }
     if (IModelApp.viewManager.getFirstOpenView()?.view.iModel.selectionSet.isActive) {
       actions.push({
         name: elementPropertiesLabel,
@@ -178,6 +165,11 @@ export function ModelScreen(props: ModelScreenProps) {
         // Close the Views bottom panel when a view is selected from it.
         onViewSelected={() => { tabsAndPanelsAPI.closeSelectedPanel(); }}
       />
+    },
+    {
+      label: picturesLabel,
+      isTab: true,
+      popup: <PicturesBottomPanel key="pictures" iModel={iModel} />
     },
     {
       label: elementPropertiesLabel,
@@ -272,12 +264,14 @@ function ModelImageView(props: ModelImageViewProps) {
 export interface HeaderTitleProps {
   iconSpec?: IconSpec;
   label?: string;
+  moreElements?: React.ReactNode;
 }
 
 export function HeaderTitle(props: HeaderTitleProps) {
-  const { iconSpec, label } = props;
+  const { iconSpec, label, moreElements } = props;
   return <div className="title">
     {iconSpec && <IconImage style={{ display: "inline-block", marginRight: 10 }} iconSpec={iconSpec} />}
     {label}
+    {moreElements}
   </div>;
 }

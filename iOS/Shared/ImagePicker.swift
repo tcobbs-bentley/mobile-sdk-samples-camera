@@ -135,27 +135,11 @@ class ImageCacheSchemeHandler: NSObject, WKURLSchemeHandler {
     static let urlScheme = "com.bentley.itms-image-cache"
     /// `WKURLSchemeHandler` protocol method.
     func webView(_ webView: WKWebView, start urlSchemeTask: WKURLSchemeTask) {
-        guard let cachePath = cachePath(from: urlSchemeTask),
-              let baseURLString = ImageCache.baseURL?.absoluteString,
-              let fileURL = URL(string: "\(baseURLString)\(cachePath)") else {
+        guard let fileURL = ImageCache.getFileUrl(urlSchemeTask.request.url) else {
             ITMAssetHandler.cancelWithFileNotFound(urlSchemeTask: urlSchemeTask)
             return
         }
         ITMAssetHandler.respondWithDiskFile(urlSchemeTask: urlSchemeTask, fileUrl: fileURL)
-    }
-    
-    /// Returns the path in Caches for the given `WKURLSchemeTask`
-    /// - Parameter urlSchemeTask: A `WKURLSchemeTask` object that uses our URL scheme.
-    /// - Returns: A string with the relative path to the URL scheme task's file, or nil.
-    func cachePath(from urlSchemeTask: WKURLSchemeTask) -> String? {
-        guard let url = urlSchemeTask.request.url, let scheme = url.scheme else {
-            return nil
-        }
-        let urlString = url.absoluteString
-        // I hate to say it, but Swift ROYALLY messed up substrings. This is totally inexcusable
-        // garbage syntax in place of the now-deprecated clean and obvious substring(from:).
-        let index = urlString.index(urlString.startIndex, offsetBy: scheme.count + 3)
-        return String(urlString[index...])
     }
 
     /// `WKURLSchemeHandler` protocol method.
@@ -164,13 +148,18 @@ class ImageCacheSchemeHandler: NSObject, WKURLSchemeHandler {
     }
 }
 
+/// Class for interacting with the image cache.
 class ImageCache {
+    /// Get all the images for a given iModel
+    /// - Parameter params: Requires an `iModelId` property to specify which iModel to get images for.
+    /// - Returns: A Promise that resolves to an array of image cache URLs for all the images in the cache for the given iModel
     static func handleGetImages(params: [String: Any]) -> Promise<[String]> {
         guard let iModelId = params["iModelId"] as? String, let dirURL = baseURL?.appendingPathComponent(iModelId) else {
             return Promise.value([])
         }
         let fm = FileManager.default
         var results: [String] = []
+        // The prefix is an image cache URL pointing to the directory for this iModel.
         let prefix = "\(ImageCacheSchemeHandler.urlScheme)://\(iModelId)/"
         if let allURLs = try? fm.contentsOfDirectory(at: dirURL, includingPropertiesForKeys: nil) {
             for url in allURLs {
@@ -181,10 +170,14 @@ class ImageCache {
         return Promise.value(results)
     }
     
+    /// Deletes all the images in the cache for the given iModel.
+    /// - Parameter params: Requires an `iModelId` property to specify which iModel to delete images for.
+    /// - Returns: A Promise that resolves to Void.
     static func handleDeleteImages(params: [String: Any]) -> Promise<()> {
         guard let iModelId = params["iModelId"] as? String, let dirURL = baseURL?.appendingPathComponent(iModelId) else {
             return Promise.value(())
         }
+        // Delete all the files in the image cache directory for the given iModel.
         let fm = FileManager.default
         if let allURLs = try? fm.contentsOfDirectory(at: dirURL, includingPropertiesForKeys: nil) {
             for url in allURLs {
@@ -194,6 +187,42 @@ class ImageCache {
             }
         }
         return Promise.value(())
+    }
+    
+    /// Deletes a specific image cache image.
+    /// - Parameter params: Requires a `url` property containing an image cache URL string for the image to delete.
+    /// - Returns: A Promise that resolves to Void.
+    static func handleDeleteImage(params: [String: Any]) -> Promise<()> {
+        guard let urlString = params["url"] as? String else {
+            return Promise.value(())
+        }
+        let cacheUrl = URL(string: urlString)
+        guard let fileUrl = getFileUrl(cacheUrl) else {
+            return Promise.value(())
+        }
+        let fm = FileManager.default
+        do {
+            try fm.removeItem(at: fileUrl)
+        } catch {}
+        return Promise.value(())
+    }
+    
+    /// Convert an image cache URL into a file URL.
+    /// - Parameter cacheUrl: The image cache URL to convert.
+    /// - Returns: Upon success, a file URL that corresponds to the file referenced by the image cache URL, otherwise nil.
+    static func getFileUrl(_ cacheUrl: URL?) -> URL? {
+        guard let cacheUrl = cacheUrl, let scheme = cacheUrl.scheme else {
+            return nil
+        }
+        let urlString = cacheUrl.absoluteString
+        // I hate to say it, but Swift ROYALLY messed up substrings. This is totally inexcusable
+        // garbage syntax in place of the now-deprecated clean and obvious substring(from:).
+        let index = urlString.index(urlString.startIndex, offsetBy: scheme.count + 3)
+        let cachePath = String(urlString[index...])
+        if let baseURLString = ImageCache.baseURL?.absoluteString {
+            return URL(string: "\(baseURLString)\(cachePath)")
+        }
+        return nil
     }
 
     /// The baseURL to use to store images.

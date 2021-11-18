@@ -14,6 +14,7 @@ export * from "./ModelScreen";
 export * from "./InfoBottomPanel";
 export * from "./AboutBottomPanel";
 export * from "./ViewsBottomPanel";
+export * from "./PicturesBottomPanel";
 export * from "./HomeScreen";
 export * from "./HubScreen";
 export * from "./ElementPropertiesPanel";

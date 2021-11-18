@@ -2,7 +2,9 @@
   "Shared": {
     "SelectIModel": "Select iModel",
     "Error": "Error",
-    "OK": "OK"
+    "OK": "OK",
+    "Yes": "Yes",
+    "No": "No"
   },
   "App": {
     "LoadErrorFormat": "Error loading iModel:\n{{error}}"
@@ -43,6 +45,7 @@
     "Info": "Info",
     "About": "About",
     "Views": "Views",
+    "Pictures": "Pictures",
     "Properties": "Properties",
     "Tools": "Tools",
     "TakePicture": "Take Picture",
@@ -60,6 +63,11 @@
   },
   "ViewsBottomPanel": {
     "Views": "Views"
+  },
+  "PicturesBottomPanel": {
+    "Pictures": "Pictures",
+    "DeleteAllTitle": "Delete All Pictures?",
+    "DeleteAllMessage": "Are you sure you want to delete all pictures for this iModel?"
   },
   "ToolsBottomPanel": {
     "Angle": "Angle",
