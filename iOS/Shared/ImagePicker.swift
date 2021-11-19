@@ -65,8 +65,10 @@ class ImagePicker: ITMNativeUIComponent {
         }
         let picker = ImagePickerFix()
         picker.modalPresentationStyle = .fullScreen
-        picker.sourceType = .camera
-        picker.allowsEditing = true
+        let sourceType = params["sourceType"] as? String
+        if sourceType != "photoLibrary" {
+            picker.sourceType = .camera
+        }
         picker.mediaTypes = [String(kUTTypeImage)]
         picker.delegate = self
         viewController.present(picker, animated: true, completion: nil)
@@ -98,7 +100,9 @@ extension ImagePicker: UIImagePickerControllerDelegate, UINavigationControllerDe
     ///   - picker: The controller object managing the image picker interface.
     ///   - info: A dictionary containing the original image and the edited image.
     func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey: Any]) {
-        guard let image = info[UIImagePickerController.InfoKey.originalImage] as? UIImage else {
+        let imageUrl = info[UIImagePickerController.InfoKey.imageURL] as? URL
+        let image = info[UIImagePickerController.InfoKey.originalImage] as? UIImage
+        if imageUrl == nil, image == nil {
             presentedResolver?.fulfill(nil)
             picker.dismiss(animated: true, completion: nil)
             return
@@ -112,11 +116,27 @@ extension ImagePicker: UIImagePickerControllerDelegate, UINavigationControllerDe
             let iModelId = self.iModelId!
             // The file will be stored in <Caches>/images/<iModelId>/. All pictures for a given iModel end up in the same directory.
             let dirUrl = baseURL.appendingPathComponent(iModelId)
+            let fm = FileManager.default
             // Make sure the output directory exists.
-            try FileManager.default.createDirectory(at: dirUrl, withIntermediateDirectories: true, attributes: nil)
+            try fm.createDirectory(at: dirUrl, withIntermediateDirectories: true, attributes: nil)
             let fileUrl = dirUrl.appendingPathComponent(filename)
-            // Write the UIImage to the given filename.
-            try ImageCache.writeImage(image, to: fileUrl, with: info[.mediaMetadata] as? NSDictionary)
+            // If the user picks from the photo library, we'll get a URL for a local copy of the file from the photo library.
+            // If the original file in the photo library was HEIC, the URL will be for a local JPEG copy. If the original file
+            // in the photo library was a PNG or JPEG, the URL will be the exact original file. If we get a URL, simply copy
+            // it to our cache.
+            if let imageUrl = imageUrl {
+                do {
+                    // It has been reported that using moveItem here doesn't work in all versions of iOS.
+                    try fm.moveItem(at: imageUrl, to: fileUrl)
+                } catch {
+                    // If moveItem fails, fall back to copyItem. Note that if copyItem fails here, it will jump to the
+                    // catch block below, which rejects the promise.
+                    try fm.copyItem(at: imageUrl, to: fileUrl)
+                }
+            } else if let image = image {
+                // Write the UIImage to the given filename.
+                try ImageCache.writeImage(image, to: fileUrl, with: info[.mediaMetadata] as? NSDictionary)
+            }
             // Fulfill the promise with a custom URL scheme URL of the form:
             // com.bentley.itms-image-cache://<iModelId>/<filename>
             // The custom ImageCacheSchemeHandler will convert that back into a file URL and then load that file.

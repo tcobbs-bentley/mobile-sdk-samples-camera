@@ -94,8 +94,12 @@ export function PicturesBottomPanel(props: PicturesBottomPanelProps) {
           }
         }}
       />
-      <NavigationButton iconSpec={"icon-add"} onClick={async () => {
+      <NavigationButton iconSpec={"icon-camera"} onClick={async () => {
         await Messenger.query("ImagePicker", { iModelId: iModel.iModelId });
+        reload();
+      }} />
+      <NavigationButton iconSpec={"icon-image"} onClick={async () => {
+        await Messenger.query("ImagePicker", { iModelId: iModel.iModelId, sourceType: "photoLibrary" });
         reload();
       }} />
     </div>
