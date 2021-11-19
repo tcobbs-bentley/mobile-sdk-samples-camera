@@ -5,7 +5,7 @@
 import React from "react";
 import ReactDOM from "react-dom";
 import { IModelConnection } from "@bentley/imodeljs-frontend";
-import { ActionStyle, Messenger, presentAlert, ReloadedEvent } from "@itwin/mobile-sdk-core";
+import { Messenger, presentYesNoAlert, ReloadedEvent } from "@itwin/mobile-sdk-core";
 import { DraggableComponent, NavigationButton, ResizableBottomPanel, ResizableBottomPanelProps, ToolButton } from "@itwin/mobile-ui-react";
 import { HeaderTitle, i18n } from "./Exports";
 
@@ -30,6 +30,10 @@ export function PicturesBottomPanel(props: PicturesBottomPanelProps) {
   const reloadedEvent = React.useRef(new ReloadedEvent());
   const [pictureUrls, setPictureUrls] = React.useState<string[]>([]);
   const [selectedPictureUrl, setSelectedPictureUrl] = React.useState<string>();
+  const deletePictureTitle = React.useMemo(() => i18n("PicturesBottomPanel", "DeletePictureTitle"), []);
+  const deletePictureMessage = React.useMemo(() => i18n("PicturesBottomPanel", "DeletePictureMessage"), []);
+  const deleteAllTitle = React.useMemo(() => i18n("PicturesBottomPanel", "DeleteAllTitle"), []);
+  const deleteAllMessage = React.useMemo(() => i18n("PicturesBottomPanel", "DeleteAllMessage"), []);
 
   const reload = React.useCallback(async () => {
     const urls: string[] = await Messenger.query("getImages", { iModelId: iModel.iModelId });
@@ -55,8 +59,10 @@ export function PicturesBottomPanel(props: PicturesBottomPanelProps) {
           className="delete-button"
           iconSpec={"icon-delete"}
           onClick={async () => {
-            await Messenger.query("deleteImage", { url: pictureUrl });
-            reload();
+            if (await presentYesNoAlert(deletePictureTitle, deletePictureMessage, true)) {
+              await Messenger.query("deleteImage", { url: pictureUrl });
+              reload();
+            }
           }}
         />
       </div>
@@ -75,20 +81,7 @@ export function PicturesBottomPanel(props: PicturesBottomPanelProps) {
         iconSpec={"icon-delete"}
         enabled={pictureUrls.length > 0}
         onClick={async () => {
-          const response = await presentAlert({
-            title: i18n("PicturesBottomPanel", "DeleteAllTitle"),
-            message: i18n("PicturesBottomPanel", "DeleteAllMessage"),
-            actions: [{
-              name: "yes",
-              title: i18n("Shared", "Yes"),
-              style: ActionStyle.Destructive,
-            },
-            {
-              name: "no",
-              title: i18n("Shared", "No"),
-            }],
-          });
-          if (response === "yes") {
+          if (await presentYesNoAlert(deleteAllTitle, deleteAllMessage, true)) {
             await Messenger.query("deleteImages", { iModelId: iModel.iModelId });
             reload();
           }
