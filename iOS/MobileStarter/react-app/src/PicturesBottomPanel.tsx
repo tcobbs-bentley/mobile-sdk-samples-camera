@@ -6,7 +6,7 @@ import React from "react";
 import ReactDOM from "react-dom";
 import { IModelConnection } from "@bentley/imodeljs-frontend";
 import { ActionStyle, Messenger, presentAlert, ReloadedEvent } from "@itwin/mobile-sdk-core";
-import { DraggableComponent, NavigationButton, ResizableBottomPanel, ResizableBottomPanelProps } from "@itwin/mobile-ui-react";
+import { DraggableComponent, NavigationButton, ResizableBottomPanel, ResizableBottomPanelProps, ToolButton } from "@itwin/mobile-ui-react";
 import { HeaderTitle, i18n } from "./Exports";
 
 import "./PicturesBottomPanel.scss";
@@ -71,7 +71,7 @@ export function PicturesBottomPanel(props: PicturesBottomPanelProps) {
 
   const headerMoreElements = (
     <div className="header-right">
-      <NavigationButton
+      <ToolButton
         iconSpec={"icon-delete"}
         enabled={pictureUrls.length > 0}
         onClick={async () => {
@@ -94,11 +94,11 @@ export function PicturesBottomPanel(props: PicturesBottomPanelProps) {
           }
         }}
       />
-      <NavigationButton iconSpec={"icon-camera"} onClick={async () => {
+      <ToolButton iconSpec={"icon-camera"} onClick={async () => {
         await Messenger.query("ImagePicker", { iModelId: iModel.iModelId });
         reload();
       }} />
-      <NavigationButton iconSpec={"icon-image"} onClick={async () => {
+      <ToolButton iconSpec={"icon-image"} onClick={async () => {
         await Messenger.query("ImagePicker", { iModelId: iModel.iModelId, sourceType: "photoLibrary" });
         reload();
       }} />
