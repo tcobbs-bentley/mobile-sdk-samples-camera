@@ -33,10 +33,10 @@ class ImagePicker: ITMNativeUIComponent {
     var iModelId: String?
     override init(viewController: UIViewController, itmMessenger: ITMMessenger) {
         super.init(viewController: viewController, itmMessenger: itmMessenger)
-        queryHandler = itmMessenger.registerQueryHandler("ImagePicker", handleQuery)
+        queryHandler = itmMessenger.registerQueryHandler("pickImage", handleQuery)
     }
     
-    /// Handles the "ImagePicker" query.
+    /// Handles the "pickImage" query.
     ///
     /// This shows the camera UI and returns a promise that when fulfilled will contain a URL using a custom scheme that
     /// resolves to the image taken by the camera.

@@ -5,9 +5,9 @@
 import React from "react";
 import ReactDOM from "react-dom";
 import { IModelConnection } from "@bentley/imodeljs-frontend";
-import { Messenger, presentYesNoAlert, ReloadedEvent } from "@itwin/mobile-sdk-core";
+import { presentYesNoAlert, ReloadedEvent } from "@itwin/mobile-sdk-core";
 import { DraggableComponent, NavigationButton, ResizableBottomPanel, ResizableBottomPanelProps, ToolButton } from "@itwin/mobile-ui-react";
-import { HeaderTitle, i18n } from "./Exports";
+import { HeaderTitle, i18n, ImageCache } from "./Exports";
 
 import "./PicturesBottomPanel.scss";
 
@@ -36,7 +36,7 @@ export function PicturesBottomPanel(props: PicturesBottomPanelProps) {
   const deleteAllMessage = React.useMemo(() => i18n("PicturesBottomPanel", "DeleteAllMessage"), []);
 
   const reload = React.useCallback(async () => {
-    const urls: string[] = await Messenger.query("getImages", { iModelId: iModel.iModelId });
+    const urls = await ImageCache.getImages(iModel.iModelId);
     urls.sort();
     setPictureUrls(urls);
     reloadedEvent.current.emit();
@@ -60,7 +60,7 @@ export function PicturesBottomPanel(props: PicturesBottomPanelProps) {
           iconSpec={"icon-delete"}
           onClick={async () => {
             if (await presentYesNoAlert(deletePictureTitle, deletePictureMessage, true)) {
-              await Messenger.query("deleteImage", { url: pictureUrl });
+              await ImageCache.deleteImage(pictureUrl);
               reload();
             }
           }}
@@ -82,18 +82,20 @@ export function PicturesBottomPanel(props: PicturesBottomPanelProps) {
         enabled={pictureUrls.length > 0}
         onClick={async () => {
           if (await presentYesNoAlert(deleteAllTitle, deleteAllMessage, true)) {
-            await Messenger.query("deleteImages", { iModelId: iModel.iModelId });
+            await ImageCache.deleteImages(iModel.iModelId);
             reload();
           }
         }}
       />
       <ToolButton iconSpec={"icon-camera"} onClick={async () => {
-        await Messenger.query("ImagePicker", { iModelId: iModel.iModelId });
-        reload();
+        if (await ImageCache.pickImage(iModel.iModelId)) {
+          reload();
+        }
       }} />
       <ToolButton iconSpec={"icon-image"} onClick={async () => {
-        await Messenger.query("ImagePicker", { iModelId: iModel.iModelId, sourceType: "photoLibrary" });
-        reload();
+        if (await ImageCache.pickImage(iModel.iModelId, true)) {
+          reload();
+        }
       }} />
     </div>
   );
