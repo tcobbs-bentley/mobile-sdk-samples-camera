@@ -72,10 +72,12 @@
   "ToolsBottomPanel": {
     "Angle": "Angle",
     "Area": "Area",
+    "Camera": "Camera",
     "Clear": "Clear",
     "Distance": "Distance",
     "Location": "Location",
     "Perpendicular": "Perpendicular",
+    "Picture": "Picture",
     "Radius": "Radius",
     "Select": "Select"
   }
