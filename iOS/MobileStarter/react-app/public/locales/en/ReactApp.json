@@ -74,6 +74,8 @@
     "Area": "Area",
     "Camera": "Camera",
     "Clear": "Clear",
+    "EnterPointPhotoPrompt": "Enter point to add a photo",
+    "EnterPointCameraPrompt": "Enter point to add a picture from the camera",
     "Distance": "Distance",
     "Location": "Location",
     "Perpendicular": "Perpendicular",

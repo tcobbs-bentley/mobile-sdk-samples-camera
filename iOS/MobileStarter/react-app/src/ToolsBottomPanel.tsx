@@ -156,22 +156,30 @@ const addImageMarker = async (point: Point3d, sourceType: string, iModelId: stri
 class PlacePhotoMarkerTool extends PlaceMarkerTool {
   public static toolId = "PlacePhotoMarkerTool";
   public static iconSpec = "icon-image";
+  public static prompt = "";
+  public static enableSnap = false;
 
   constructor(iModelId: string) {
     super(async (point: Point3d) => {
       await addImageMarker(point, "photoLibrary", iModelId);
     });
+    if (!PlacePhotoMarkerTool.prompt)
+      PlacePhotoMarkerTool.prompt = IModelApp.i18n.translate("ReactApp:ToolsBottomPanel.EnterPointPhotoPrompt");
   }
 }
 
 class PlaceCameraMarkerTool extends PlaceMarkerTool {
   public static toolId = "PlaceCameraMarkerTool";
   public static iconSpec = "icon-camera";
+  public static prompt = "";
+  public static enableSnap = false;
 
   constructor(iModelId: string) {
     super(async (point: Point3d) => {
       await addImageMarker(point, "camera", iModelId);
     });
+    if (!PlaceCameraMarkerTool.prompt)
+      PlaceCameraMarkerTool.prompt = IModelApp.i18n.translate("ReactApp:ToolsBottomPanel.EnterPointCameraPrompt");
   }
 }
 
@@ -183,20 +191,24 @@ export function ToolsBottomPanel(props: ToolsBottomPanelProps) {
     if (!vp)
       return;
 
-    PlacePhotoMarkerTool.register(IModelApp.i18n.registerNamespace("marker-pin-i18n-namespace"));
-    PlaceCameraMarkerTool.register(IModelApp.i18n.registerNamespace("marker-pin-i18n-namespace"));
+    // Register tools if they aren't already registered
+    const ns = IModelApp.i18n.getNamespace("ReactApp");
+    if (!IModelApp.tools.find(PlacePhotoMarkerTool.toolId))
+      IModelApp.tools.register(PlacePhotoMarkerTool, ns);
+    if (!IModelApp.tools.find(PlaceCameraMarkerTool.toolId))
+      IModelApp.tools.register(PlaceCameraMarkerTool, ns);
+
     ImageMarkerApi.startup();
 
     return () => {
       ImageMarkerApi.shutdown();
-      IModelApp.tools.unRegister(PlacePhotoMarkerTool.toolId);
-      IModelApp.tools.unRegister(PlaceCameraMarkerTool.toolId);
-      IModelApp.i18n.unregisterNamespace("marker-pin-i18n-namespace");
     };
   }, [vp]);
 
   const tools = [
     { labelKey: "ReactApp:ToolsBottomPanel.Select", icon: "icon-gesture-touch", toolItemDef: CoreTools.selectElementCommand },
+    { labelKey: "ReactApp:ToolsBottomPanel.Picture", icon: "icon-image", toolItemDef: getItemDefForTool(PlacePhotoMarkerTool, undefined, iModel?.iModelId) },
+    { labelKey: "ReactApp:ToolsBottomPanel.Camera", icon: "icon-camera", toolItemDef: getItemDefForTool(PlaceCameraMarkerTool, undefined, iModel?.iModelId) },
     { labelKey: "ReactApp:ToolsBottomPanel.Distance", icon: "icon-measure-distance", toolItemDef: MeasureToolDefinitions.measureDistanceToolCommand },
     { labelKey: "ReactApp:ToolsBottomPanel.Location", icon: "icon-measure-location", toolItemDef: MeasureToolDefinitions.measureLocationToolCommand },
     { labelKey: "ReactApp:ToolsBottomPanel.Area", icon: "icon-measure-2d", toolItemDef: MeasureToolDefinitions.measureAreaToolCommand },
@@ -204,8 +216,6 @@ export function ToolsBottomPanel(props: ToolsBottomPanelProps) {
     { labelKey: "ReactApp:ToolsBottomPanel.Angle", icon: "icon-measure-angle", toolItemDef: MeasureToolDefinitions.measureAngleToolCommand },
     { labelKey: "ReactApp:ToolsBottomPanel.Perpendicular", icon: "icon-measure-perpendicular", toolItemDef: MeasureToolDefinitions.measurePerpendicularToolCommand },
     { labelKey: "ReactApp:ToolsBottomPanel.Clear", icon: "icon-measure-clear", toolItemDef: MeasureToolDefinitions.clearMeasurementsToolCommand },
-    { labelKey: "ReactApp:ToolsBottomPanel.Picture", icon: "icon-image", toolItemDef: getItemDefForTool(PlacePhotoMarkerTool, undefined, iModel?.iModelId) },
-    { labelKey: "ReactApp:ToolsBottomPanel.Camera", icon: "icon-camera", toolItemDef: getItemDefForTool(PlaceCameraMarkerTool, undefined, iModel?.iModelId) },
   ];
 
   const activeToolId = useActiveToolId();

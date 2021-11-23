@@ -1,32 +1,59 @@
 /*---------------------------------------------------------------------------------------------
 * Copyright (c) 2020 Bentley Systems, Incorporated. All rights reserved.
 *--------------------------------------------------------------------------------------------*/
-import { BeButtonEvent, EventHandled, IModelApp, PrimitiveTool, Viewport } from "@bentley/imodeljs-frontend";
+import {
+  BeButtonEvent,
+  EventHandled,
+  IModelApp,
+  PrimitiveTool,
+  ToolAssistance,
+  ToolAssistanceImage,
+  ToolAssistanceInputMethod,
+  ToolAssistanceInstruction,
+  ToolAssistanceSection,
+  Viewport
+} from "@bentley/imodeljs-frontend";
 import { Point3d } from "@bentley/geometry-core";
 
-/** This class defines the user's interaction while placing a new marker. It is launched by a button in the UI.
- *  While it is active, the tool handles events from the user, notably mouse clicks in the viewport.
- */
 export class PlaceMarkerTool extends PrimitiveTool {
+  // Sub-classes can override these properties
   public static toolId = "PlaceMarkerTool";
   public static iconSpec = "icon-location";
+  public static prompt = "Enter point";
+  public static enableSnap = true;
+
   protected _createMarkerCallback: (pt: Point3d) => {};
 
   constructor(callback: (pt: Point3d) => {}) {
     super();
-
     this._createMarkerCallback = callback;
   }
 
+  public get ctor() { return this.constructor as typeof PlaceMarkerTool; }
   public isCompatibleViewport(vp: Viewport | undefined, isSelectedViewChange: boolean): boolean { return (super.isCompatibleViewport(vp, isSelectedViewChange) && undefined !== vp); }
-  public isValidLocation(_ev: BeButtonEvent, _isButtonEvent: boolean): boolean { return true; } // Allow snapping to terrain, etc. outside project extents.
+  public isValidLocation(_ev: BeButtonEvent, _isButtonEvent: boolean): boolean { return true; } // Allow clicking anywhere
   public requireWriteableTarget(): boolean { return false; } // Tool doesn't modify the imodel.
   public onPostInstall() { super.onPostInstall(); this.setupAndPromptForNextAction(); }
   public onRestartTool(): void { this.exitTool(); }
 
+  private showPrompt() {
+    const msg = this.ctor.prompt;
+    const mainInstruction = ToolAssistance.createInstruction(this.iconSpec, msg);
+    const sections: ToolAssistanceSection[] = [];
+    const mouseInstructions: ToolAssistanceInstruction[] = [];
+    mouseInstructions.push(ToolAssistance.createInstruction(ToolAssistanceImage.LeftClick, msg, false, ToolAssistanceInputMethod.Mouse));
+    sections.push(ToolAssistance.createSection(mouseInstructions, ToolAssistance.inputsLabel));
+    const touchLineInstructions: ToolAssistanceInstruction[] = [];
+    touchLineInstructions.push(ToolAssistance.createInstruction(ToolAssistanceImage.OneTouchDrag, msg, false, ToolAssistanceInputMethod.Touch));
+    sections.push(ToolAssistance.createSection(touchLineInstructions, ToolAssistance.inputsLabel));
+    const instructions = ToolAssistance.createInstructions(mainInstruction, sections);
+    IModelApp.notifications.setToolAssistance(instructions);
+  }
+
   protected setupAndPromptForNextAction(): void {
-    // Accusnap adjusts the effective cursor location to 'snap' to geometry in the view
-    IModelApp.accuSnap.enableSnap(true);
+    if (this.ctor.enableSnap)
+      IModelApp.accuSnap.enableSnap(true);
+    this.showPrompt();
   }
 
   // A reset button is the secondary action button, ex. right mouse button.
