@@ -7,7 +7,7 @@ import ReactDOM from "react-dom";
 import { IModelConnection } from "@bentley/imodeljs-frontend";
 import { presentYesNoAlert, ReloadedEvent } from "@itwin/mobile-sdk-core";
 import { DraggableComponent, NavigationButton, ResizableBottomPanel, ResizableBottomPanelProps, ToolButton } from "@itwin/mobile-ui-react";
-import { HeaderTitle, i18n, ImageCache } from "./Exports";
+import { HeaderTitle, i18n, ImageCache, ImageMarkerApi } from "./Exports";
 
 import "./PicturesBottomPanel.scss";
 
@@ -34,6 +34,7 @@ export function PicturesBottomPanel(props: PicturesBottomPanelProps) {
   const deletePictureMessage = React.useMemo(() => i18n("PicturesBottomPanel", "DeletePictureMessage"), []);
   const deleteAllTitle = React.useMemo(() => i18n("PicturesBottomPanel", "DeleteAllTitle"), []);
   const deleteAllMessage = React.useMemo(() => i18n("PicturesBottomPanel", "DeleteAllMessage"), []);
+  const [decoratorActive, setDecoratorActive] = React.useState(true);
 
   const reload = React.useCallback(async () => {
     const urls = await ImageCache.getImages(iModel.iModelId);
@@ -96,6 +97,10 @@ export function PicturesBottomPanel(props: PicturesBottomPanelProps) {
         if (await ImageCache.pickImage(iModel.iModelId, true)) {
           reload();
         }
+      }} />
+      <ToolButton iconSpec={decoratorActive ? "icon-visibility-hide-2" : "icon-visibility"} onClick={() => {
+        ImageMarkerApi.enabled = !ImageMarkerApi.enabled;
+        setDecoratorActive(ImageMarkerApi.enabled);
       }} />
     </div>
   );
