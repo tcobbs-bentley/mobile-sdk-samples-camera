@@ -7,10 +7,6 @@ import {
   IModelApp,
   PrimitiveTool,
   ToolAssistance,
-  ToolAssistanceImage,
-  ToolAssistanceInputMethod,
-  ToolAssistanceInstruction,
-  ToolAssistanceSection,
   Viewport
 } from "@bentley/imodeljs-frontend";
 import { Point3d } from "@bentley/geometry-core";
@@ -36,24 +32,10 @@ export class PlaceMarkerTool extends PrimitiveTool {
   public onPostInstall() { super.onPostInstall(); this.setupAndPromptForNextAction(); }
   public onRestartTool(): void { this.exitTool(); }
 
-  private showPrompt() {
-    const msg = this.ctor.prompt;
-    const mainInstruction = ToolAssistance.createInstruction(this.iconSpec, msg);
-    const sections: ToolAssistanceSection[] = [];
-    const mouseInstructions: ToolAssistanceInstruction[] = [];
-    mouseInstructions.push(ToolAssistance.createInstruction(ToolAssistanceImage.LeftClick, msg, false, ToolAssistanceInputMethod.Mouse));
-    sections.push(ToolAssistance.createSection(mouseInstructions, ToolAssistance.inputsLabel));
-    const touchLineInstructions: ToolAssistanceInstruction[] = [];
-    touchLineInstructions.push(ToolAssistance.createInstruction(ToolAssistanceImage.OneTouchDrag, msg, false, ToolAssistanceInputMethod.Touch));
-    sections.push(ToolAssistance.createSection(touchLineInstructions, ToolAssistance.inputsLabel));
-    const instructions = ToolAssistance.createInstructions(mainInstruction, sections);
-    IModelApp.notifications.setToolAssistance(instructions);
-  }
-
   protected setupAndPromptForNextAction(): void {
     if (this.ctor.enableSnap)
       IModelApp.accuSnap.enableSnap(true);
-    this.showPrompt();
+    IModelApp.notifications.setToolAssistance(ToolAssistance.createInstructions(ToolAssistance.createInstruction(this.iconSpec, this.ctor.prompt)));
   }
 
   // A reset button is the secondary action button, ex. right mouse button.
