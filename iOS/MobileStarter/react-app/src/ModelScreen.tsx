@@ -19,6 +19,7 @@ import {
   useBeEvent,
   useIsMountedRef,
   useTabsAndStandAlonePanels,
+  useUiEvent,
   VisibleBackButton,
 } from "@itwin/mobile-ui-react";
 import {
@@ -29,7 +30,9 @@ import {
   InfoBottomPanel,
   PicturesBottomPanel,
   ToolsBottomPanel,
-  ViewsBottomPanel
+  ViewsBottomPanel,
+  PictureView,
+  ImageMarkerApi
 } from "./Exports";
 import "./ModelScreen.scss";
 
@@ -71,6 +74,10 @@ export function ModelScreen(props: ModelScreenProps) {
   const picturesLabel = React.useMemo(() => i18n("ModelScreen", "Pictures"), []);
   const toolsLabel = React.useMemo(() => i18n("ModelScreen", "Tools"), []);
   const elementPropertiesLabel = React.useMemo(() => i18n("ModelScreen", "Properties"), []);
+  const [selectedPictureUrl, setSelectedPictureUrl] = React.useState<string>();
+
+  useUiEvent((url) => setSelectedPictureUrl(url), ImageMarkerApi.onMarkerClick);
+
   // Any time we do anything asynchronous, we have to check if the component is still mounted,
   // or it can lead to a run-time exception.
   const isMountedRef = useIsMountedRef();
@@ -169,7 +176,7 @@ export function ModelScreen(props: ModelScreenProps) {
     {
       label: picturesLabel,
       isTab: true,
-      popup: <PicturesBottomPanel key="pictures" iModel={iModel} />
+      popup: <PicturesBottomPanel key="pictures" iModel={iModel} onPictureSelected={(url) => setSelectedPictureUrl(url)} />
     },
     {
       label: elementPropertiesLabel,
@@ -239,6 +246,10 @@ export function ModelScreen(props: ModelScreenProps) {
           }
         />
         <ToolAssistance />
+        {selectedPictureUrl && <PictureView url={selectedPictureUrl} onClick={(e: React.MouseEvent<HTMLDivElement>) => {
+          e.stopPropagation();
+          setSelectedPictureUrl(undefined);
+        }} />}
         {tabsAndPanelsAPI.renderTabBarAndPanels()}
       </MobileUiContent >
     </>

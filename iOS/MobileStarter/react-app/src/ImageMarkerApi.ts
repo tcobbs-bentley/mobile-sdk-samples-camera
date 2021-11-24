@@ -10,6 +10,7 @@ import {
 import {
   BeButton,
   BeButtonEvent,
+  BeTouchEvent,
   Cluster,
   DecorateContext,
   Decorator,
@@ -18,22 +19,22 @@ import {
   MarkerImage,
   MarkerSet
 } from "@bentley/imodeljs-frontend";
-import { getCssVariable } from "@bentley/ui-core";
+import { getCssVariable, UiEvent } from "@bentley/ui-core";
 
 /** Displays a single image Marker at a given world location. */
 class ImageMarker extends Marker {
   private static readonly HEIGHT = 100;
   private _url: string;
-  private _onMouseButtonCallback?: (url: string) => void;
+  private _onClickCallback?: (url: string) => void;
 
-  constructor(point: Point3d, url: string, image: HTMLImageElement, onMouseButtonCallback?: (url: string) => void) {
+  constructor(point: Point3d, url: string, image: HTMLImageElement, onClickCallback?: (url: string) => void) {
     // Use the same height for all the markers, but preserve the aspect ratio from the image
     const aspect = image.width / image.height;
     const size = new Point2d(aspect * ImageMarker.HEIGHT, ImageMarker.HEIGHT);
     super(point, size);
 
     this._url = url;
-    this._onMouseButtonCallback = onMouseButtonCallback;
+    this._onClickCallback = onClickCallback;
 
     this.setImage(image);
 
@@ -46,13 +47,18 @@ class ImageMarker extends Marker {
     return this._url;
   }
 
-  /** This method will be called when the user clicks on a marker */
   public onMouseButton(ev: BeButtonEvent): boolean {
-    if (BeButton.Data !== ev.button || !ev.isDown || !ev.viewport || !ev.viewport.view.isSpatialView())
-      return true;
-
-    this._onMouseButtonCallback?.(this._url);
+    if ((ev instanceof BeTouchEvent && ev.isSingleTap) || (ev.button === BeButton.Data && ev.isDown)) {
+      this._onClickCallback?.(this._url);
+    }
     return true; // Don't allow clicks to be sent to active tool
+  }
+
+  protected drawHilited(ctx: CanvasRenderingContext2D) {
+    // Don't draw differently if we have a click handler
+    if (this._onClickCallback)
+      return false;
+    return super.drawHilited(ctx);
   }
 }
 
@@ -121,7 +127,7 @@ class ImageMarkerSet extends MarkerSet<ImageMarker> {
   }
 
   public addMarker(point: Point3d, image: HTMLImageElement, url: string) {
-    this.markers.add(new ImageMarker(point, url, image));
+    this.markers.add(new ImageMarker(point, url, image, (url: string) => ImageMarkerApi.onMarkerClick.emit(url)));
     IModelApp.viewManager.selectedView?.invalidateDecorations();
   }
 
@@ -156,6 +162,8 @@ class ImageMarkerDecorator implements Decorator {
 
 export class ImageMarkerApi {
   private static _decorator?: ImageMarkerDecorator;
+
+  public static onMarkerClick = new UiEvent<string>();
 
   public static startup(enabled = true) {
     this._decorator = new ImageMarkerDecorator();

@@ -29,7 +29,6 @@ export function PicturesBottomPanel(props: PicturesBottomPanelProps) {
   const picturesLabel = React.useMemo(() => i18n("PicturesBottomPanel", "Pictures"), []);
   const reloadedEvent = React.useRef(new ReloadedEvent());
   const [pictureUrls, setPictureUrls] = React.useState<string[]>([]);
-  const [selectedPictureUrl, setSelectedPictureUrl] = React.useState<string>();
   const deletePictureTitle = React.useMemo(() => i18n("PicturesBottomPanel", "DeletePictureTitle"), []);
   const deletePictureMessage = React.useMemo(() => i18n("PicturesBottomPanel", "DeletePictureMessage"), []);
   const deleteAllTitle = React.useMemo(() => i18n("PicturesBottomPanel", "DeleteAllTitle"), []);
@@ -48,7 +47,6 @@ export function PicturesBottomPanel(props: PicturesBottomPanelProps) {
   }, [reload]);
 
   const handlePictureSelected = React.useCallback((pictureUrl: string) => {
-    setSelectedPictureUrl(pictureUrl);
     onPictureSelected?.(pictureUrl);
   }, [onPictureSelected]);
 
@@ -105,11 +103,6 @@ export function PicturesBottomPanel(props: PicturesBottomPanelProps) {
     </div>
   );
 
-  const handlePictureViewClick = React.useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-    e.stopPropagation();
-    setSelectedPictureUrl(undefined);
-  }, []);
-
   return (
     <ResizableBottomPanel
       {...otherProps}
@@ -129,17 +122,16 @@ export function PicturesBottomPanel(props: PicturesBottomPanelProps) {
           {dummyItems}
         </div>
       </div>
-      {selectedPictureUrl && <PictureView url={selectedPictureUrl} onClick={handlePictureViewClick} />}
     </ResizableBottomPanel>
   );
 }
 
-interface PictureViewProps {
+export interface PictureViewProps {
   url: string;
   onClick?: (e: React.MouseEvent<HTMLDivElement>) => void;
 }
 
-function PictureView(props: PictureViewProps) {
+export function PictureView(props: PictureViewProps) {
   const { url, onClick } = props;
   const portalDiv = (
     <div className="picture-view">

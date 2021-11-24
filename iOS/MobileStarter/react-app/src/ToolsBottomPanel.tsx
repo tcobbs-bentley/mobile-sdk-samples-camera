@@ -34,11 +34,11 @@ import {
 } from "@itwin/mobile-ui-react";
 import {
   PlaceMarkerTool,
+  ImageCache,
   ImageMarkerApi,
 } from "./Exports";
 
 import "./ToolsBottomPanel.scss";
-import { Messenger } from "@itwin/mobile-sdk-core";
 
 export type ButtonRowProps = React.HTMLAttributes<HTMLDivElement>;
 
@@ -146,11 +146,13 @@ export class ImageLocations {
   }
 }
 
-const addImageMarker = async (point: Point3d, sourceType: string, iModelId: string) => {
-  const fileUrl = await Messenger.query("ImagePicker", { iModelId, sourceType });
-  const image = await imageElementFromUrl(fileUrl);
-  ImageLocations.setLocation(fileUrl, point);
-  ImageMarkerApi.addMarker(point, image, fileUrl);
+const addImageMarker = async (point: Point3d, photoLibrary: boolean, iModelId: string) => {
+  const fileUrl = await ImageCache.pickImage(iModelId, photoLibrary);
+  if (fileUrl) {
+    const image = await imageElementFromUrl(fileUrl);
+    ImageLocations.setLocation(fileUrl, point);
+    ImageMarkerApi.addMarker(point, image, fileUrl);
+  }
 };
 
 class PlacePhotoMarkerTool extends PlaceMarkerTool {
@@ -161,7 +163,7 @@ class PlacePhotoMarkerTool extends PlaceMarkerTool {
 
   constructor(iModelId: string) {
     super(async (point: Point3d) => {
-      await addImageMarker(point, "photoLibrary", iModelId);
+      await addImageMarker(point, true, iModelId);
     });
     if (!PlacePhotoMarkerTool.prompt)
       PlacePhotoMarkerTool.prompt = IModelApp.i18n.translate("ReactApp:ToolsBottomPanel.EnterPointPhotoPrompt");
@@ -176,7 +178,7 @@ class PlaceCameraMarkerTool extends PlaceMarkerTool {
 
   constructor(iModelId: string) {
     super(async (point: Point3d) => {
-      await addImageMarker(point, "camera", iModelId);
+      await addImageMarker(point, false, iModelId);
     });
     if (!PlaceCameraMarkerTool.prompt)
       PlaceCameraMarkerTool.prompt = IModelApp.i18n.translate("ReactApp:ToolsBottomPanel.EnterPointCameraPrompt");
