@@ -54,6 +54,22 @@ class ImageMarker extends Marker {
     return true; // Don't allow clicks to be sent to active tool
   }
 
+  public drawDecoration(ctx: CanvasRenderingContext2D) {
+    // add a shadow to the image
+    ctx.shadowBlur = 10;
+    ctx.shadowColor = "black";
+
+    super.drawDecoration(ctx);
+
+    // draw a border around the image
+    ctx.shadowBlur = 0;
+    const size = this.imageSize ? this.imageSize : this.size;
+    const offset = new Point2d(size.x / 2, size.y / 2);
+    ctx.strokeStyle = "white";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(-offset.x, -offset.y, size.x, size.y);
+  }
+
   protected drawHilited(ctx: CanvasRenderingContext2D) {
     // Don't draw differently if we have a click handler
     if (this._onClickCallback)
