@@ -108,7 +108,7 @@ extension ImagePicker: UIImagePickerControllerDelegate, UINavigationControllerDe
             return
         }
         let dateFmt = DateFormatter()
-        dateFmt.dateFormat = "yyyy-MM-dd HH-mm-ss.SSS"
+        dateFmt.dateFormat = "yyyy-MM-dd-HH-mm-ss.SSS"
         // Use a timestamp for the filename.
         let filename = "\(dateFmt.string(from: Date())).jpg"
         do {
