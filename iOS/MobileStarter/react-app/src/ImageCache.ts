@@ -1,4 +1,5 @@
 import { Messenger } from "@itwin/mobile-sdk-core";
+import { ImageMarkerApi } from "./Exports";
 
 /**
  * Helper class for dealing with native messages relating to the image cache.
@@ -20,6 +21,7 @@ export class ImageCache {
    * @returns A void Promise that completes when the deletion has finished.
    */
   static async deleteImage(url: string): Promise<void> {
+    ImageMarkerApi.deleteMarker(url);
     return Messenger.query("deleteImage", { url });
   }
 
@@ -29,6 +31,7 @@ export class ImageCache {
    * @returns A void Promise that completes when the deletion has finished.
    */
   static async deleteImages(iModelId: string | undefined): Promise<void> {
+    ImageMarkerApi.deleteMarkers(iModelId);
     return Messenger.query("deleteImages", { iModelId });
   }
 
