@@ -8,7 +8,6 @@ import {
   ToolItemDef
 } from "@bentley/ui-framework";
 import {
-  imageElementFromUrl,
   IModelApp,
   IModelConnection,
   Tool,
@@ -98,61 +97,10 @@ function getItemDefForTool(tool: typeof Tool, iconSpec?: string, ...args: any[])
   });
 }
 
-export class ImageLocations {
-  public static getLocation(fileUrl: string) {
-    const val = localStorage.getItem(fileUrl);
-    if (!val)
-      return undefined;
-    return Point3d.fromJSON(JSON.parse(val));
-  }
-
-  public static setLocation(fileUrl: string, point: Point3d) {
-    localStorage.setItem(fileUrl, JSON.stringify(point.toJSON()));
-  }
-
-  public static clearLocation(fileUrl: string) {
-    localStorage.removeItem(fileUrl);
-  }
-
-  private static getImageCacheKeys() {
-    const urls = new Array<string>();
-    for (let i = 0; i < localStorage.length; ++i) {
-      const key = localStorage.key(i);
-      if (key) {
-        const val = localStorage.getItem(key);
-        if (val && val.startsWith("com.bentley.itms-image-cache://")) {
-          urls.push(key);
-        }
-      }
-    }
-    return urls;
-  }
-
-  public static clearAllLocations() {
-    for (const removal of this.getImageCacheKeys()) {
-      localStorage.removeItem(removal);
-    }
-  }
-
-  public static getLocations() {
-    const locations = new Map<string, Point3d>();
-    const urls = this.getImageCacheKeys();
-    for (const url of urls) {
-      const point = this.getLocation(url);
-      if (point)
-        locations.set(url, point);
-    }
-    return locations;
-  }
-}
-
 const addImageMarker = async (point: Point3d, photoLibrary: boolean, iModelId: string) => {
   const fileUrl = await ImageCache.pickImage(iModelId, photoLibrary);
-  if (fileUrl) {
-    const image = await imageElementFromUrl(fileUrl);
-    ImageLocations.setLocation(fileUrl, point);
-    ImageMarkerApi.addMarker(point, image, fileUrl);
-  }
+  if (fileUrl)
+    ImageMarkerApi.addMarker(point, fileUrl);
 };
 
 class PlacePhotoMarkerTool extends PlaceMarkerTool {
@@ -200,12 +148,12 @@ export function ToolsBottomPanel(props: ToolsBottomPanelProps) {
     if (!IModelApp.tools.find(PlaceCameraMarkerTool.toolId))
       IModelApp.tools.register(PlaceCameraMarkerTool, ns);
 
-    ImageMarkerApi.startup();
+    ImageMarkerApi.startup(iModel.iModelId);
 
     return () => {
       ImageMarkerApi.shutdown();
     };
-  }, [vp]);
+  }, [iModel.iModelId, vp]);
 
   const tools = [
     { labelKey: "ReactApp:ToolsBottomPanel.Select", icon: "icon-gesture-touch", toolItemDef: CoreTools.selectElementCommand },

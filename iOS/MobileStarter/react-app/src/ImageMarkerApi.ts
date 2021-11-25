@@ -17,7 +17,8 @@ import {
   IModelApp,
   Marker,
   MarkerImage,
-  MarkerSet
+  MarkerSet,
+  tryImageElementFromUrl
 } from "@bentley/imodeljs-frontend";
 import { getCssVariable, UiEvent } from "@bentley/ui-core";
 
@@ -27,7 +28,7 @@ class ImageMarker extends Marker {
   private _url: string;
   private _onClickCallback?: (url: string) => void;
 
-  constructor(point: Point3d, url: string, image: HTMLImageElement, onClickCallback?: (url: string) => void) {
+  constructor(point: XYAndZ, _size: XAndY, url: string, image: MarkerImage, onClickCallback?: (url: string) => void) {
     // Use the same height for all the markers, but preserve the aspect ratio from the image
     const aspect = image.width / image.height;
     const size = new Point2d(aspect * ImageMarker.HEIGHT, ImageMarker.HEIGHT);
@@ -43,8 +44,12 @@ class ImageMarker extends Marker {
     this.setScaleFactor({ low: .75, high: 2.0 });
   }
 
-  get url() {
+  public get url() {
     return this._url;
+  }
+
+  public get onClickCallback() {
+    return this._onClickCallback;
   }
 
   public onMouseButton(ev: BeButtonEvent): boolean {
@@ -78,15 +83,14 @@ class ImageMarker extends Marker {
   }
 }
 
-class BadgedImageMarker extends Marker {
+class BadgedImageMarker extends ImageMarker {
   private count = 0;
   private static activeColor: string;
 
-  constructor(location: XYAndZ, size: XAndY, cluster: Cluster<Marker>, image: MarkerImage) {
-    super(location, size);
-    this.setImage(image);
+  constructor(location: XYAndZ, size: XAndY, cluster: Cluster<ImageMarker>) {
+    super(location, size, cluster.markers[0].url, cluster.markers[0].image!, cluster.markers[0].onClickCallback);
     this.count = cluster.markers.length;
-    const aspect = image.width / image.height;
+    const aspect = this.image!.width / this.image!.height;
     const halfHeight = size.y / 2;
     this.labelOffset = { x: -((halfHeight * aspect) - 5), y: halfHeight - 5 };
     if (!BadgedImageMarker.activeColor)
@@ -139,11 +143,11 @@ class ImageMarkerSet extends MarkerSet<ImageMarker> {
   // minimumClusterSize = 2;
 
   protected getClusterMarker(cluster: Cluster<ImageMarker>): Marker {
-    return BadgedImageMarker.makeFrom(cluster.markers[0], cluster, cluster.markers[0].image);
+    return BadgedImageMarker.makeFrom(cluster.markers[0], cluster);
   }
 
   public addMarker(point: Point3d, image: HTMLImageElement, url: string) {
-    this.markers.add(new ImageMarker(point, url, image, (url: string) => ImageMarkerApi.onMarkerClick.emit(url)));
+    this.markers.add(new ImageMarker(point, Point2d.createZero(), url, image, (url: string) => ImageMarkerApi.onMarkerClick.emit(url)));
     IModelApp.viewManager.selectedView?.invalidateDecorations();
   }
 
@@ -155,6 +159,11 @@ class ImageMarkerSet extends MarkerSet<ImageMarker> {
         return;
       }
     }
+  }
+
+  public clearMarkers() {
+    this.markers.clear();
+    IModelApp.viewManager.selectedView?.invalidateDecorations();
   }
 }
 
@@ -174,17 +183,78 @@ class ImageMarkerDecorator implements Decorator {
   public decorate(context: DecorateContext): void {
     this._markerSet?.addDecoration(context);
   }
+
+  public clearMarkers() {
+    this._markerSet?.clearMarkers();
+  }
+}
+
+class ImageLocations {
+  public static getLocation(fileUrl: string) {
+    const val = localStorage.getItem(fileUrl);
+    if (!val)
+      return undefined;
+    return Point3d.fromJSON(JSON.parse(val));
+  }
+
+  public static setLocation(fileUrl: string, point: Point3d) {
+    localStorage.setItem(fileUrl, JSON.stringify(point.toJSON()));
+  }
+
+  public static clearLocation(fileUrl: string) {
+    localStorage.removeItem(fileUrl);
+  }
+
+  private static getImageCacheKeys(iModelId?: string) {
+    const urls = new Array<string>();
+    let prefix = "com.bentley.itms-image-cache://";
+    if (iModelId !== undefined && iModelId.length)
+      prefix += `${iModelId}/`;
+
+    for (let i = 0; i < localStorage.length; ++i) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith(prefix)) {
+        urls.push(key);
+      }
+    }
+    return urls;
+  }
+
+  public static clearLocations(iModelId?: string) {
+    for (const removal of this.getImageCacheKeys(iModelId)) {
+      localStorage.removeItem(removal);
+    }
+  }
+
+  public static getLocations(iModelId?: string) {
+    const locations = new Map<string, Point3d>();
+    const urls = this.getImageCacheKeys(iModelId);
+    for (const url of urls) {
+      const point = this.getLocation(url);
+      if (point)
+        locations.set(url, point);
+    }
+    return locations;
+  }
 }
 
 export class ImageMarkerApi {
   private static _decorator?: ImageMarkerDecorator;
 
   public static onMarkerClick = new UiEvent<string>();
+  public static onMarkerAdded = new UiEvent<string>();
 
-  public static startup(enabled = true) {
+  public static startup(iModelId?: string, enabled = true) {
     this._decorator = new ImageMarkerDecorator();
     if (enabled)
       IModelApp.viewManager.addDecorator(this._decorator);
+
+    // Load existing image markers
+    this._decorator?.clearMarkers();
+    const locations = ImageLocations.getLocations(iModelId)
+    for (const [url, location] of locations) {
+      this.addMarker(location, url);
+    }
   }
 
   public static shutdown() {
@@ -210,11 +280,25 @@ export class ImageMarkerApi {
     }
   }
 
-  public static addMarker(point: Point3d, image: HTMLImageElement, fileUrl: string) {
-    this._decorator?.addMarker(point, image, fileUrl);
-  }
+  public static async addMarker(point: Point3d, fileUrl: string) {
+    const image = await tryImageElementFromUrl(fileUrl);
+    if (image) {
+      ImageLocations.setLocation(fileUrl, point);
+      this._decorator?.addMarker(point, image, fileUrl);
+      this.onMarkerAdded.emit(fileUrl);
+    }
+    else {
+      ImageLocations.clearLocation(fileUrl);
+    }
+  };
 
   public static deleteMarker(fileUrl: string) {
+    ImageLocations.clearLocation(fileUrl);
     this._decorator?.deleteMarker(fileUrl);
+  }
+
+  public static deleteMarkers(iModelId: string | undefined) {
+    ImageLocations.clearLocations(iModelId);
+    this._decorator?.clearMarkers();
   }
 }
