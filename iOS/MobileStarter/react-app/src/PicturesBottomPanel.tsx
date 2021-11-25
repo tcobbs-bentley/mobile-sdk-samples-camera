@@ -6,7 +6,7 @@ import React from "react";
 import ReactDOM from "react-dom";
 import { IModelConnection } from "@bentley/imodeljs-frontend";
 import { presentYesNoAlert, ReloadedEvent } from "@itwin/mobile-sdk-core";
-import { DraggableComponent, NavigationButton, ResizableBottomPanel, ResizableBottomPanelProps, ToolButton } from "@itwin/mobile-ui-react";
+import { DraggableComponent, NavigationButton, ResizableBottomPanel, ResizableBottomPanelProps, ToolButton, useUiEvent } from "@itwin/mobile-ui-react";
 import { HeaderTitle, i18n, ImageCache, ImageMarkerApi } from "./Exports";
 
 import "./PicturesBottomPanel.scss";
@@ -45,6 +45,8 @@ export function PicturesBottomPanel(props: PicturesBottomPanelProps) {
   React.useEffect(() => {
     reload();
   }, [reload]);
+
+  useUiEvent(() => reload(), ImageMarkerApi.onMarkerAdded);
 
   const handlePictureSelected = React.useCallback((pictureUrl: string) => {
     onPictureSelected?.(pictureUrl);
