@@ -193,7 +193,7 @@ class ImageCache {
     /// Deletes all the images in the cache for the given iModel.
     /// - Parameter params: Requires an `iModelId` property to specify which iModel to delete images for.
     /// - Returns: A Promise that resolves to Void.
-    static func handleDeleteImages(params: [String: Any]) -> Promise<()> {
+    static func handleDeleteAllImages(params: [String: Any]) -> Promise<()> {
         guard let iModelId = params["iModelId"] as? String, let dirURL = baseURL?.appendingPathComponent(iModelId) else {
             return Promise.value(())
         }
@@ -209,21 +209,25 @@ class ImageCache {
         return Promise.value(())
     }
     
+    private static func deleteImage(urlString: String) {
+        if let fileUrl = getFileUrl(URL(string: urlString)) {
+            do {
+                try FileManager.default.removeItem(at: fileUrl)
+            } catch {}
+        }
+    }
+    
     /// Deletes a specific image cache image.
-    /// - Parameter params: Requires a `url` property containing an image cache URL string for the image to delete.
+    /// - Parameter params: Requires a `urls` property containing a string or array of strings with the image cache URL's to delete.
     /// - Returns: A Promise that resolves to Void.
-    static func handleDeleteImage(params: [String: Any]) -> Promise<()> {
-        guard let urlString = params["url"] as? String else {
-            return Promise.value(())
+    static func handleDeleteImages(params: [String: Any]) -> Promise<()> {
+        if let urls = params["urls"] as? [String] {
+            for url in urls {
+                deleteImage(urlString: url)
+            }
+        } else if let urlString = params["urls"] as? String {
+            deleteImage(urlString: urlString)
         }
-        let cacheUrl = URL(string: urlString)
-        guard let fileUrl = getFileUrl(cacheUrl) else {
-            return Promise.value(())
-        }
-        let fm = FileManager.default
-        do {
-            try fm.removeItem(at: fileUrl)
-        } catch {}
         return Promise.value(())
     }
     

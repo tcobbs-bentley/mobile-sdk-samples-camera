@@ -66,6 +66,8 @@
     "Pictures": "Pictures",
     "DeletePictureTitle": "Delete Picture?",
     "DeletePictureMessage": "Are you sure you want to delete this picture?",
+    "DeleteSelectedTitle": "Delete Selected Pictures?",
+    "DeleteSelectedMessage": "Are you sure you want to delete the selected pictures?",
     "DeleteAllTitle": "Delete All Pictures?",
     "DeleteAllMessage": "Are you sure you want to delete all pictures for this iModel?"
   },

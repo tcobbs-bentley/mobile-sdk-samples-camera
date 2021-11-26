@@ -69,8 +69,24 @@
           right: 0px;
           top: 4px;
         }
+        .select-button {
+          position: absolute;
+          right: 4px;
+          top: 4px;
+          background-color: var(--muic-active);
+          border: 1px solid white;
+          padding-top: 6px;
+          border-radius: 100px;
+          pointer-events: none;
+        }
       }
-      .dummy-item {
+      .selected {
+        border-color: var(--muic-active);
+        img {
+          filter: brightness(70%);
+        }
+      }
+    .dummy-item {
         width: 200px;
         max-width: calc(50% - 10px);
         padding: 0px;

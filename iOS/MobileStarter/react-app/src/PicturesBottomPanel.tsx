@@ -4,8 +4,13 @@
 *--------------------------------------------------------------------------------------------*/
 import React from "react";
 import ReactDOM from "react-dom";
+import classnames from "classnames";
 import { IModelConnection } from "@bentley/imodeljs-frontend";
-import { presentYesNoAlert, ReloadedEvent } from "@itwin/mobile-sdk-core";
+import {
+  // MobileCore, 
+  presentYesNoAlert,
+  ReloadedEvent,
+} from "@itwin/mobile-sdk-core";
 import { DraggableComponent, NavigationButton, ResizableBottomPanel, ResizableBottomPanelProps, ToolButton, useUiEvent } from "@itwin/mobile-ui-react";
 import { HeaderTitle, i18n, ImageCache, ImageMarkerApi } from "./Exports";
 
@@ -33,12 +38,20 @@ export function PicturesBottomPanel(props: PicturesBottomPanelProps) {
   const deletePictureMessage = React.useMemo(() => i18n("PicturesBottomPanel", "DeletePictureMessage"), []);
   const deleteAllTitle = React.useMemo(() => i18n("PicturesBottomPanel", "DeleteAllTitle"), []);
   const deleteAllMessage = React.useMemo(() => i18n("PicturesBottomPanel", "DeleteAllMessage"), []);
+  const deleteSelectedTitle = React.useMemo(() => i18n("PicturesBottomPanel", "DeleteSelectedTitle"), []);
+  const deleteSelectedMessage = React.useMemo(() => i18n("PicturesBottomPanel", "DeleteSelectedMessage"), []);
   const [decoratorActive, setDecoratorActive] = React.useState(true);
+  const [selectMode, setSelectMode] = React.useState(false);
+  const [selectedUrls, setSelectedUrls] = React.useState(new Set<string>());
 
   const reload = React.useCallback(async () => {
     const urls = await ImageCache.getImages(iModel.iModelId);
     urls.sort();
     setPictureUrls(urls);
+    if (urls.length === 0) {
+      setSelectMode(false);
+      setSelectedUrls(new Set<string>());
+    }
     reloadedEvent.current.emit();
   }, [iModel]);
 
@@ -48,24 +61,44 @@ export function PicturesBottomPanel(props: PicturesBottomPanelProps) {
 
   useUiEvent(() => reload(), ImageMarkerApi.onMarkerAdded);
 
-  const handlePictureSelected = React.useCallback((pictureUrl: string) => {
-    onPictureSelected?.(pictureUrl);
-  }, [onPictureSelected]);
+  const togglePictureSelected = React.useCallback((pictureUrl: string) => {
+    setSelectedUrls((previousSelectedUrls) => {
+      const newSelected = new Set<string>(previousSelectedUrls);
+      if (newSelected.has(pictureUrl))
+        newSelected.delete(pictureUrl);
+      else
+        newSelected.add(pictureUrl);
+      return newSelected;
+    })
+  }, []);
+
+  const handlePictureClick = React.useCallback((pictureUrl: string) => {
+    if (selectMode) {
+      togglePictureSelected(pictureUrl);
+    } else {
+      onPictureSelected?.(pictureUrl);
+    }
+  }, [onPictureSelected, selectMode, togglePictureSelected]);
 
   const pictureButtons = pictureUrls.map((pictureUrl, index) => {
+    const selected = selectedUrls.has(pictureUrl);
     return (
-      <div className="list-item" key={index} onClick={() => handlePictureSelected(pictureUrl)}>
+      <div className={classnames("list-item", selectMode && selected && "selected")} key={index} onClick={() => handlePictureClick(pictureUrl)}>
         <img src={pictureUrl} alt="" />
-        <NavigationButton
+        {!selectMode && <NavigationButton
           className="delete-button"
           iconSpec={"icon-delete"}
           onClick={async () => {
             if (await presentYesNoAlert(deletePictureTitle, deletePictureMessage, true)) {
-              await ImageCache.deleteImage(pictureUrl);
+              await ImageCache.deleteImages([pictureUrl]);
               reload();
             }
           }}
-        />
+        />}
+        {selectMode && selected && <NavigationButton
+          className="select-button"
+          iconSpec={"icon-checkmark"}
+        />}
       </div>
     );
   });
@@ -78,30 +111,53 @@ export function PicturesBottomPanel(props: PicturesBottomPanelProps) {
 
   const headerMoreElements = (
     <div className="header-right">
-      <ToolButton
-        iconSpec={"icon-delete"}
-        enabled={pictureUrls.length > 0}
-        onClick={async () => {
-          if (await presentYesNoAlert(deleteAllTitle, deleteAllMessage, true)) {
-            await ImageCache.deleteImages(iModel.iModelId);
+      {pictureUrls.length > 0 && <NavigationButton
+        style={{ color: (selectMode ? "var(--muic-active)" : "var(--muic-foreground)") }}
+        iconSpec={"icon-checkmark"}
+        noShadow
+        onClick={() => {
+          setSelectMode(!selectMode);
+        }} />}
+      {!selectMode && <>
+        <ToolButton iconSpec={"icon-camera"} onClick={async () => {
+          if (await ImageCache.pickImage(iModel.iModelId)) {
             reload();
           }
-        }}
-      />
-      <ToolButton iconSpec={"icon-camera"} onClick={async () => {
-        if (await ImageCache.pickImage(iModel.iModelId)) {
-          reload();
-        }
-      }} />
-      <ToolButton iconSpec={"icon-image"} onClick={async () => {
-        if (await ImageCache.pickImage(iModel.iModelId, true)) {
-          reload();
-        }
-      }} />
-      <ToolButton iconSpec={decoratorActive ? "icon-visibility-hide-2" : "icon-visibility"} onClick={() => {
-        ImageMarkerApi.enabled = !ImageMarkerApi.enabled;
-        setDecoratorActive(ImageMarkerApi.enabled);
-      }} />
+        }} />
+        <ToolButton iconSpec={"icon-image"} onClick={async () => {
+          if (await ImageCache.pickImage(iModel.iModelId, true)) {
+            reload();
+          }
+        }} />
+        <ToolButton iconSpec={decoratorActive ? "icon-visibility-hide-2" : "icon-visibility"} onClick={() => {
+          ImageMarkerApi.enabled = !ImageMarkerApi.enabled;
+          setDecoratorActive(ImageMarkerApi.enabled);
+        }} />
+      </>}
+      {selectMode && <>
+        <ToolButton iconSpec={"icon-checkbox-select"} enabled={selectedUrls.size !== pictureUrls.length} onClick={() => {
+          setSelectedUrls(new Set(pictureUrls));
+        }} />
+        <ToolButton iconSpec={"icon-checkbox-deselect"} enabled={selectedUrls.size > 0} onClick={() => {
+          setSelectedUrls(new Set());
+        }} />
+        {/* <ToolButton iconSpec={MobileCore.isIosPlatform ? "icon-upload" : "icon-share"} enabled={selectedUrls.size > 0} onClick={() => {
+        }} /> */}
+        <ToolButton
+          iconSpec={"icon-delete"}
+          enabled={selectedUrls.size > 0}
+          onClick={async () => {
+            const all = pictureUrls.length === selectedUrls.size;
+            if (all && await presentYesNoAlert(deleteAllTitle, deleteAllMessage, true)) {
+              await ImageCache.deleteAllImages(iModel.iModelId);
+              reload();
+            } else if (!all && await presentYesNoAlert(deleteSelectedTitle, deleteSelectedMessage, true)) {
+              await ImageCache.deleteImages(Array.from(selectedUrls));
+              reload();
+            }
+          }}
+        />
+      </>}
     </div>
   );
 

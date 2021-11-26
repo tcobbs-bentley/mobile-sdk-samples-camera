@@ -16,13 +16,13 @@ export class ImageCache {
   }
 
   /**
-   * Delete an image from the image cache.
-   * @param url The URL of the image to delete.
+   * Delete images from the image cache.
+   * @param urls An array of URL's of the images to delete.
    * @returns A void Promise that completes when the deletion has finished.
    */
-  static async deleteImage(url: string): Promise<void> {
-    ImageMarkerApi.deleteMarker(url);
-    return Messenger.query("deleteImage", { url });
+  static async deleteImages(urls: string[]): Promise<void> {
+    urls.forEach((currUrl) => ImageMarkerApi.deleteMarker(currUrl));
+    return Messenger.query("deleteImages", { url: urls });
   }
 
   /**
@@ -30,9 +30,9 @@ export class ImageCache {
    * @param iModelId The iModelId to delete the cached images from.
    * @returns A void Promise that completes when the deletion has finished.
    */
-  static async deleteImages(iModelId: string | undefined): Promise<void> {
+  static async deleteAllImages(iModelId: string | undefined): Promise<void> {
     ImageMarkerApi.deleteMarkers(iModelId);
-    return Messenger.query("deleteImages", { iModelId });
+    return Messenger.query("deleteAllImages", { iModelId });
   }
 
   /**
@@ -40,7 +40,7 @@ export class ImageCache {
    * @param iModelId The iModelId to get the images for.
    * @returns A Promise that resolves to an array of strings representing all the image URLs.
    */
-  static async getImages(iModelId: string | undefined): Promise<[string]> {
+  static async getImages(iModelId: string | undefined): Promise<string[]> {
     return Messenger.query("getImages", { iModelId });
   }
 }
