@@ -7,7 +7,7 @@ import ReactDOM from "react-dom";
 import classnames from "classnames";
 import { IModelConnection } from "@bentley/imodeljs-frontend";
 import {
-  // MobileCore, 
+  MobileCore,
   presentYesNoAlert,
   ReloadedEvent,
 } from "@itwin/mobile-sdk-core";
@@ -141,8 +141,10 @@ export function PicturesBottomPanel(props: PicturesBottomPanelProps) {
         <ToolButton iconSpec={"icon-checkbox-deselect"} enabled={selectedUrls.size > 0} onClick={() => {
           setSelectedUrls(new Set());
         }} />
-        {/* <ToolButton iconSpec={MobileCore.isIosPlatform ? "icon-upload" : "icon-share"} enabled={selectedUrls.size > 0} onClick={() => {
-        }} /> */}
+        <ToolButton iconSpec={MobileCore.isIosPlatform ? "icon-upload" : "icon-share"} enabled={selectedUrls.size > 0}
+          onClick={(e) => {
+            ImageCache.shareImages(Array.from(selectedUrls), e.currentTarget.getBoundingClientRect());
+          }} />
         <ToolButton
           iconSpec={"icon-delete"}
           enabled={selectedUrls.size > 0}

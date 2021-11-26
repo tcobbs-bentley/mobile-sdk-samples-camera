@@ -22,7 +22,7 @@ export class ImageCache {
    */
   static async deleteImages(urls: string[]): Promise<void> {
     urls.forEach((currUrl) => ImageMarkerApi.deleteMarker(currUrl));
-    return Messenger.query("deleteImages", { url: urls });
+    return Messenger.query("deleteImages", { urls });
   }
 
   /**
@@ -42,5 +42,14 @@ export class ImageCache {
    */
   static async getImages(iModelId: string | undefined): Promise<string[]> {
     return Messenger.query("getImages", { iModelId });
+  }
+
+  /**
+   * Share images from the image cache.
+   * @param urls An array of URL's of the images to share.
+   * @returns A void Promise that completes when the share dialog is displayed.
+   */
+  static async shareImages(urls: string[], sourceRect?: DOMRect): Promise<void> {
+    return Messenger.query("shareImages", { urls, sourceRect });
   }
 }

@@ -48,6 +48,7 @@ class ModelApplication: ITMApplication {
             let itmMessenger = ITMViewController.application.itmMessenger
             itmNativeUI.addComponent(DocumentPicker(viewController: viewController, itmMessenger: itmMessenger))
             itmNativeUI.addComponent(ImagePicker(viewController: viewController, itmMessenger: itmMessenger))
+            itmNativeUI.addComponent(ImageSharer(viewController: viewController, itmMessenger: itmMessenger))
         }
     }
 
