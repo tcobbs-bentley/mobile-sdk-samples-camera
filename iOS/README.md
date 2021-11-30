@@ -24,7 +24,11 @@ Before building the samples, you must configure a Client ID for yourself. To do 
     ITMAPPLICATION_SCOPE = <Your Scope>
     ```
 
-    Note: If you already had a Client ID, browse to your app's page on developer.bently.com. If you just created it, you should already be there.
+    Notes:
+
+    * Do not surround your values with quotes.
+
+    * If you already had a Client ID, browse to your app's page on developer.bently.com. If you just created it, you should already be there.
 
 1. Copy your client ID from the app's page, then replace &lt;Your Client ID&gt;.    
 1. Use the "Copy" button in the Scopes section of the app's page to copy your scopes to the clipboard. Then replace &lt;Your scope&gt;.
@@ -40,7 +44,7 @@ Before building the samples, you must configure a Client ID for yourself. To do 
 1. cd into the `iOS/MobileStarter/react-app` directory of this repository.
 1. If you are not on a Mac with Apple Silicon and did so above, run `npm install`.
 1. Run `npm run build`.
-1. Run `npm run start`. __Note:__ This starts a Read Debug Server on your Mac that the app will communicate with. It must be running when you run the app. This requires that the device be able to connect to your Mac. If you want the app to run purely on the device (like it would if it were released), uncomment the `ITMAPPLICATION_NO_DEBUG_SERVER = YES` line in iOSSamples.xcconfig. If you do this, there is no need for the React Debug Server to be running when you run the app.
+1. Run `npm run start`. __Note:__ This starts a React Debug Server on your Mac that the app will communicate with. It must be running when you run the app. This requires that the device be able to connect to your Mac. If you want the app to run purely on the device (like it would if it were released), uncomment the `ITMAPPLICATION_NO_DEBUG_SERVER = YES` line in iOSSamples.xcconfig. If you do this, there is no need for the React Debug Server to be running when you run the app.
 
 ---
 
