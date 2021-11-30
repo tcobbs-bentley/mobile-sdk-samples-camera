@@ -108,7 +108,7 @@ extension ImagePicker: UIImagePickerControllerDelegate, UINavigationControllerDe
             return
         }
         let dateFmt = DateFormatter()
-        dateFmt.dateFormat = "yyyy-MM-dd-HH-mm-ss.SSS"
+        dateFmt.dateFormat = "yyyy-MM-dd HH-mm-ss.SSS"
         // Use a timestamp for the filename.
         let filename = "\(dateFmt.string(from: Date())).jpg"
         do {
@@ -140,7 +140,10 @@ extension ImagePicker: UIImagePickerControllerDelegate, UINavigationControllerDe
             // Fulfill the promise with a custom URL scheme URL of the form:
             // com.bentley.itms-image-cache://<iModelId>/<filename>
             // The custom ImageCacheSchemeHandler will convert that back into a file URL and then load that file.
-            presentedResolver?.fulfill("\(ImageCacheSchemeHandler.urlScheme)://\(iModelId)/\(filename)")
+            // Note: the absolute file URL is converted to an NSString to maintain any encoded characters, instead
+            // of using lastPathComponent directly on fileUrl. Even though we're fulfilling a string, that string
+            // represents a URL.
+            presentedResolver?.fulfill("\(ImageCacheSchemeHandler.urlScheme)://\(iModelId)/\(NSString(string: fileUrl.absoluteString).lastPathComponent)")
         } catch {
             // If anything went wrong above, reject the promise.
             presentedResolver?.reject(error)
@@ -183,7 +186,7 @@ class ImageCache {
         let prefix = "\(ImageCacheSchemeHandler.urlScheme)://\(iModelId)/"
         if let allURLs = try? fm.contentsOfDirectory(at: dirURL, includingPropertiesForKeys: nil) {
             for url in allURLs {
-                let urlString = NSString(string: "\(url)")
+                let urlString = NSString(string: url.absoluteString)
                 results.append("\(prefix)\(urlString.lastPathComponent)")
             }
         }
@@ -297,12 +300,9 @@ class ImageSharer: ITMNativeUIComponent {
         if let urls = params["urls"] as? [String],
            let vc = self.viewController {
             var rect = CGRect(x: UIScreen.main.bounds.width / 2, y: UIScreen.main.bounds.height, width: 0, height: 0)
-            if let sourceRect = params["sourceRect"] as? [String: Any] {
-                // TODO: expose ITMDictionaryDecoder in ITMNativeUI so it can be used here instead
-                rect = CGRect(x: sourceRect["x"]  as! Int,
-                                    y: sourceRect["y"] as! Int,
-                                    width: sourceRect["width"] as! Int,
-                                    height: sourceRect["height"] as! Int)
+            if let sourceRect = params["sourceRect"] as? [String: Any],
+               let sourceRect: ITMRect = try? ITMDictionaryDecoder.decode(sourceRect) {
+                rect = CGRect(sourceRect)
             }
             ImageSharer.shareItems(items: urls.compactMap { ImageCache.getFileUrl(URL(string: $0)) }, vc: vc, sourceRect: rect)
         }
