@@ -64,6 +64,11 @@
           height: 200px;
           object-fit: cover;
         }
+        .share-button {
+          position: absolute;
+          left: 0px;
+          top: 4px;
+        }
         .delete-button {
           position: absolute;
           right: 0px;
@@ -71,13 +76,15 @@
         }
         .select-button {
           position: absolute;
-          right: 4px;
-          top: 4px;
+          right: 8px;
+          top: 8px;
           background-color: var(--muic-active);
           border: 1px solid white;
-          padding-top: 6px;
+          padding-top: 8px;
           border-radius: 100px;
           pointer-events: none;
+          max-width: 24px;
+          max-height: 24px;
         }
       }
       .selected {

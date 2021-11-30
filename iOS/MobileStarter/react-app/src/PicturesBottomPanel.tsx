@@ -80,11 +80,20 @@ export function PicturesBottomPanel(props: PicturesBottomPanelProps) {
     }
   }, [onPictureSelected, selectMode, togglePictureSelected]);
 
+  const getShareIcon = () => MobileCore.isIosPlatform ? "icon-upload" : "icon-share";
+
   const pictureButtons = pictureUrls.map((pictureUrl, index) => {
     const selected = selectedUrls.has(pictureUrl);
     return (
       <div className={classnames("list-item", selectMode && selected && "selected")} key={index} onClick={() => handlePictureClick(pictureUrl)}>
         <img src={pictureUrl} alt="" />
+        {!selectMode && <NavigationButton
+          className="share-button"
+          iconSpec={getShareIcon()}
+          onClick={(e) => {
+            ImageCache.shareImages([pictureUrl], e.currentTarget.parentElement?.getBoundingClientRect());
+          }}
+        />}
         {!selectMode && <NavigationButton
           className="delete-button"
           iconSpec={"icon-delete"}
@@ -97,7 +106,8 @@ export function PicturesBottomPanel(props: PicturesBottomPanelProps) {
         />}
         {selectMode && selected && <NavigationButton
           className="select-button"
-          iconSpec={"icon-checkmark"}
+          iconSpec="icon-checkmark"
+          iconSize="18px"
         />}
       </div>
     );
@@ -111,10 +121,8 @@ export function PicturesBottomPanel(props: PicturesBottomPanelProps) {
 
   const headerMoreElements = (
     <div className="header-right">
-      {pictureUrls.length > 0 && <NavigationButton
+      {pictureUrls.length > 0 && <NavigationButton iconSpec={"icon-edit"} noShadow
         style={{ color: (selectMode ? "var(--muic-active)" : "var(--muic-foreground)") }}
-        iconSpec={"icon-checkmark"}
-        noShadow
         onClick={() => {
           setSelectMode(!selectMode);
         }} />}
@@ -129,19 +137,21 @@ export function PicturesBottomPanel(props: PicturesBottomPanelProps) {
             reload();
           }
         }} />
-        <ToolButton iconSpec={decoratorActive ? "icon-visibility-hide-2" : "icon-visibility"} onClick={() => {
-          ImageMarkerApi.enabled = !ImageMarkerApi.enabled;
-          setDecoratorActive(ImageMarkerApi.enabled);
-        }} />
+        <NavigationButton iconSpec="icon-visibility" noShadow
+          style={{ color: (decoratorActive ? "var(--muic-active)" : "var(--muic-foreground)") }}
+          onClick={() => {
+            ImageMarkerApi.enabled = !ImageMarkerApi.enabled;
+            setDecoratorActive(ImageMarkerApi.enabled);
+          }} />
       </>}
       {selectMode && <>
-        <ToolButton iconSpec={"icon-checkbox-select"} enabled={selectedUrls.size !== pictureUrls.length} onClick={() => {
-          setSelectedUrls(new Set(pictureUrls));
+        <ToolButton iconSpec={"icon-checkbox-select"} enabled={pictureUrls.length > 0} onClick={() => {
+          if (selectedUrls.size === pictureUrls.length)
+            setSelectedUrls(new Set());
+          else
+            setSelectedUrls(new Set(pictureUrls));
         }} />
-        <ToolButton iconSpec={"icon-checkbox-deselect"} enabled={selectedUrls.size > 0} onClick={() => {
-          setSelectedUrls(new Set());
-        }} />
-        <ToolButton iconSpec={MobileCore.isIosPlatform ? "icon-upload" : "icon-share"} enabled={selectedUrls.size > 0}
+        <ToolButton iconSpec={getShareIcon()} enabled={selectedUrls.size > 0}
           onClick={(e) => {
             ImageCache.shareImages(Array.from(selectedUrls), e.currentTarget.getBoundingClientRect());
           }} />
