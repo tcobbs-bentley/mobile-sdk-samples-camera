@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		1F0978A227593E5200104043 /* ImageCacheSchemeHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F0978A127593E5200104043 /* ImageCacheSchemeHandler.swift */; };
+		1F0978A427593EBE00104043 /* ImageCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F0978A327593EBE00104043 /* ImageCache.swift */; };
+		1F0978A627593F6000104043 /* ImageSharer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F0978A527593F6000104043 /* ImageSharer.swift */; };
 		1F2D7B642742D38B00AAB11E /* PrintLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F2D7B632742D38B00AAB11E /* PrintLogger.swift */; };
 		1F5726672744772200C53437 /* ImagePicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F5726662744772200C53437 /* ImagePicker.swift */; };
 		1FC11154261FC44900835E6E /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FC11153261FC44900835E6E /* AppDelegate.swift */; };
@@ -20,6 +23,9 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		1F0978A127593E5200104043 /* ImageCacheSchemeHandler.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ImageCacheSchemeHandler.swift; sourceTree = "<group>"; };
+		1F0978A327593EBE00104043 /* ImageCache.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ImageCache.swift; sourceTree = "<group>"; };
+		1F0978A527593F6000104043 /* ImageSharer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ImageSharer.swift; sourceTree = "<group>"; };
 		1F2D7B632742D38B00AAB11E /* PrintLogger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrintLogger.swift; sourceTree = "<group>"; };
 		1F5726662744772200C53437 /* ImagePicker.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ImagePicker.swift; sourceTree = "<group>"; };
 		1F6EB10C26D46210003BA335 /* ITMApplication.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = ITMApplication.xcconfig; path = ../ITMApplication.xcconfig; sourceTree = "<group>"; };
@@ -87,7 +93,10 @@
 			isa = PBXGroup;
 			children = (
 				5FD7518626DD9DCD00DC3060 /* DocumentPicker.swift */,
+				1F0978A327593EBE00104043 /* ImageCache.swift */,
+				1F0978A127593E5200104043 /* ImageCacheSchemeHandler.swift */,
 				1F5726662744772200C53437 /* ImagePicker.swift */,
+				1F0978A527593F6000104043 /* ImageSharer.swift */,
 				5FD7518726DD9DCD00DC3060 /* ModelApplication.swift */,
 				1F2D7B632742D38B00AAB11E /* PrintLogger.swift */,
 			);
@@ -215,11 +224,14 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				1F0978A227593E5200104043 /* ImageCacheSchemeHandler.swift in Sources */,
 				1FC11154261FC44900835E6E /* AppDelegate.swift in Sources */,
+				1F0978A427593EBE00104043 /* ImageCache.swift in Sources */,
 				5FD7518826DD9DCD00DC3060 /* DocumentPicker.swift in Sources */,
 				5FD7518926DD9DCD00DC3060 /* ModelApplication.swift in Sources */,
 				1F5726672744772200C53437 /* ImagePicker.swift in Sources */,
 				1F2D7B642742D38B00AAB11E /* PrintLogger.swift in Sources */,
+				1F0978A627593F6000104043 /* ImageSharer.swift in Sources */,
 				1FC11156261FC44900835E6E /* SceneDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
