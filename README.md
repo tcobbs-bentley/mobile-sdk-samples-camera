@@ -8,7 +8,7 @@ This is pre-release software and provided as-is.
 
 ## About this Repository
 
-This repository contains sample iOS apps that make use of the iTwin mobile-sdk.
+This repository contains sample iOS apps based on iTwin/mobile-sdk-samples that add native camera and photo library functionality.
 
 There are two sample apps, MobileStarter and SwiftUIStarter. The former is a UIKit app, and the later is a SwiftUI app. Both contain a full-screen WKWebView to host the iTwin content, and make use of the same TypeScript code running inside that WKWebView.
 
