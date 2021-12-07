@@ -179,30 +179,9 @@ abstract class GreedyClusteringMarkerSet<T extends Marker> extends MarkerSet<T> 
     }
   }
 
-  /** This method should be called from [[Decorator.decorate]]. It will add this MarkerSet to the supplied DecorateContext.
-   * This method implements the logic that turns overlapping Markers into a Cluster.
-   * @param context The DecorateContext for the Markers
-   */
-   public addDecoration(context: DecorateContext): void {
+  protected clusterMarkers(context: DecorateContext) {
     const vp = context.viewport;
-    if (vp !== this.viewport) {
-      return; // not viewport of this MarkerSet, ignore it
-    }
-
     const entries = this._entries;
-
-    // Don't recreate the entries array if the view hasn't changed. This is important for performance, but also necessary for hilite of
-    // clusters (otherwise they're recreated continually and never hilited.) */
-    if (!this._worldToViewMap.isAlmostEqual(vp.worldToViewMap.transform0)) {
-      this._worldToViewMap.setFrom(vp.worldToViewMap.transform0);
-      this._minScaleViewW = undefined; // Invalidate current value.
-      entries.length = 0; // start over.
-
-      // Greedy clustering algorithm:
-      // - Start with any point from the dataset.
-      // - Find all points within a certain radius around that point.
-      // - Form a new cluster with the nearby points.
-      // - Choose a new point that isn’t part of a cluster, and repeat until we have visited all the points.
 
       // get the visible markers
       const visibleMarkers: T[] = [];
@@ -212,6 +191,11 @@ abstract class GreedyClusteringMarkerSet<T extends Marker> extends MarkerSet<T> 
         }
       });
 
+      // Greedy clustering algorithm:
+      // - Start with any point from the dataset.
+      // - Find all points within a certain radius around that point.
+      // - Form a new cluster with the nearby points.
+      // - Choose a new point that isn’t part of a cluster, and repeat until we have visited all the points.
       const distSquared = this.clusterRadius * this.clusterRadius;
       const clustered = new Set<T>();
 
@@ -242,10 +226,29 @@ abstract class GreedyClusteringMarkerSet<T extends Marker> extends MarkerSet<T> 
         if (!clustered.has(m))
           entries.push(m);
       });
+  }
+
+  /** This method should be called from [[Decorator.decorate]]. It will add this MarkerSet to the supplied DecorateContext.
+   * This method implements the logic that turns overlapping Markers into a Cluster.
+   * @param context The DecorateContext for the Markers
+   */
+   public addDecoration(context: DecorateContext): void {
+    const vp = context.viewport;
+    if (vp !== this.viewport) {
+      return; // not viewport of this MarkerSet, ignore it
+    }
+
+    // Don't recreate the entries array if the view hasn't changed. This is important for performance, but also necessary for hilite of
+    // clusters (otherwise they're recreated continually and never hilited.) */
+    if (!this._worldToViewMap.isAlmostEqual(vp.worldToViewMap.transform0)) {
+      this._worldToViewMap.setFrom(vp.worldToViewMap.transform0);
+      this._minScaleViewW = undefined; // Invalidate current value.
+      this._entries.length = 0; // start over.
+      this.clusterMarkers(context);
     }
 
     // we now have an array of Markers and Clusters, add them to context
-    for (const entry of entries) {
+    for (const entry of this._entries) {
       if (entry instanceof Cluster) { // is this entry a Cluster?
         if (entry.markers.length <= this.minimumClusterSize) { // yes, does it have more than the minimum number of entries?
           entry.markers.forEach((marker) => marker.addMarker(context)); // no, just draw all of its Markers
