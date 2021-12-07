@@ -139,11 +139,139 @@ class BadgedImageMarker extends ImageMarker {
   }
 }
 
-class ImageMarkerSet extends MarkerSet<ImageMarker> {
-  // minimumClusterSize = 2;
+/**
+ * A MarkerSet sub-class that uses a gready clustering algorithm. Sub-classes should use the [[getAverageLocation]] function
+ * to set the location of the marker they return in getClusterMarker.
+ */
+abstract class GreedyClusteringMarkerSet<T extends Marker> extends MarkerSet<T> {
+  /// The radius (in pixels) for clustering markers, default 150.
+  clusterRadius = 150;
+
+  /**
+   * Gets the average of the cluster markers worldLocation.
+   * @param cluster Cluster to get average location of.
+   * @returns The average of the cluster markers worldLocation.
+   */
+  protected getAverageLocation(cluster: Cluster<T>) {
+    const location = Point3d.createZero();
+    cluster.markers.forEach((marker) => location.addInPlace(marker.worldLocation));
+    location.scaleInPlace(1 / cluster.markers.length);
+    return location;
+  }
+
+  /**
+   * Sets the cluster's rect by averaging the rects of all the markers in the cluster.
+   * @param cluster Cluster to set rect of.
+   */
+  protected setClusterRectFromMarkers<T extends Marker>(cluster: Cluster<T>) {
+    const len = cluster.markers.length;
+    if (len > 1) {
+      const midPoint = Point3d.createZero();
+      const size = Point3d.createZero();
+      cluster.markers.forEach((marker) => {
+        const center = new Point2d(marker.rect.left + (marker.rect.width / 2), marker.rect.top + (marker.rect.height / 2));
+        midPoint.addXYZInPlace(center.x, center.y);
+        size.addXYZInPlace(marker.rect.width, marker.rect.height);
+      });
+      midPoint.scaleInPlace(1 / len);
+      size.scaleInPlace(0.5 * (1 / len));
+      cluster.rect.init(midPoint.x - size.x, midPoint.y - size.y, midPoint.x + size.x, midPoint.y + size.y);
+    }
+  }
+
+  /** This method should be called from [[Decorator.decorate]]. It will add this MarkerSet to the supplied DecorateContext.
+   * This method implements the logic that turns overlapping Markers into a Cluster.
+   * @param context The DecorateContext for the Markers
+   */
+   public addDecoration(context: DecorateContext): void {
+    const vp = context.viewport;
+    if (vp !== this.viewport) {
+      return; // not viewport of this MarkerSet, ignore it
+    }
+
+    const entries = this._entries;
+
+    // Don't recreate the entries array if the view hasn't changed. This is important for performance, but also necessary for hilite of
+    // clusters (otherwise they're recreated continually and never hilited.) */
+    if (!this._worldToViewMap.isAlmostEqual(vp.worldToViewMap.transform0)) {
+      this._worldToViewMap.setFrom(vp.worldToViewMap.transform0);
+      this._minScaleViewW = undefined; // Invalidate current value.
+      entries.length = 0; // start over.
+
+      // Greedy clustering algorithm:
+      // - Start with any point from the dataset.
+      // - Find all points within a certain radius around that point.
+      // - Form a new cluster with the nearby points.
+      // - Choose a new point that isn’t part of a cluster, and repeat until we have visited all the points.
+
+      // get the visible markers
+      const visibleMarkers: T[] = [];
+      this.markers.forEach((marker) => {
+        if (marker.setPosition(vp, this)) {
+          visibleMarkers.push(marker);
+        }
+      });
+
+      const distSquared = this.clusterRadius * this.clusterRadius;
+      const clustered = new Set<T>();
+
+      for (const marker of visibleMarkers) {
+        if (clustered.has(marker))
+          continue;
+
+        const clusterMarkers: T[] = [];
+        for (const otherMarker of visibleMarkers) {
+          if (marker === otherMarker || clustered.has(marker))
+            continue;
+
+          if (marker.position.distanceSquaredXY(otherMarker.position) <= distSquared)
+            clusterMarkers.push(otherMarker);
+        }
+
+        if (clusterMarkers.length > 0) {
+          clusterMarkers.unshift(marker);
+          clusterMarkers.forEach((m) => clustered.add(m));
+          const cluster = new Cluster(clusterMarkers);
+          this.setClusterRectFromMarkers(cluster);
+          entries.push(cluster);
+        }
+      }
+
+      // add any unprocessed markers to the entries
+      visibleMarkers.forEach((m) => {
+        if (!clustered.has(m))
+          entries.push(m);
+      });
+    }
+
+    // we now have an array of Markers and Clusters, add them to context
+    for (const entry of entries) {
+      if (entry instanceof Cluster) { // is this entry a Cluster?
+        if (entry.markers.length <= this.minimumClusterSize) { // yes, does it have more than the minimum number of entries?
+          entry.markers.forEach((marker) => marker.addMarker(context)); // no, just draw all of its Markers
+        } else {
+          // yes, get and draw the Marker for this Cluster
+          if (undefined === entry.clusterMarker) { // have we already created this cluster marker?
+            const clusterMarker = this.getClusterMarker(entry); // no, get it now.
+            // set the marker's position as we shouldn't assume getClusterMarker sets it
+            if (clusterMarker.rect.isNull)
+              clusterMarker.setPosition(vp, this);
+            entry.clusterMarker = clusterMarker;
+          }
+          entry.clusterMarker.addMarker(context);
+        }
+      } else {
+        entry.addMarker(context); // entry is a non-overlapping Marker, draw it.
+      }
+    }
+  }
+}
+
+class ImageMarkerSet extends GreedyClusteringMarkerSet<ImageMarker> {
+  clusterRadius = 150;
 
   protected getClusterMarker(cluster: Cluster<ImageMarker>): Marker {
-    return BadgedImageMarker.makeFrom(cluster.markers[0], cluster);
+    return new BadgedImageMarker(this.getAverageLocation(cluster), cluster.markers[0].size, cluster);
   }
 
   public addMarker(point: Point3d, image: HTMLImageElement, url: string) {
@@ -251,7 +379,7 @@ export class ImageMarkerApi {
 
     // Load existing image markers
     this._decorator?.clearMarkers();
-    const locations = ImageLocations.getLocations(iModelId)
+    const locations = ImageLocations.getLocations(iModelId);
     for (const [url, location] of locations) {
       this.addMarker(location, url);
     }
@@ -286,11 +414,10 @@ export class ImageMarkerApi {
       ImageLocations.setLocation(fileUrl, point);
       this._decorator?.addMarker(point, image, fileUrl);
       this.onMarkerAdded.emit(fileUrl);
-    }
-    else {
+    } else {
       ImageLocations.clearLocation(fileUrl);
     }
-  };
+  }
 
   public static deleteMarker(fileUrl: string) {
     ImageLocations.clearLocation(fileUrl);
