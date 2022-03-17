@@ -88,6 +88,7 @@
   "ToolsBottomPanel": {
     "Angle": "Angle",
     "Area": "Area",
+    "Camera": "Camera",
     "Clear": "Clear",
     "EnterPointPhotoPrompt": "Enter point to add an existing picture",
     "EnterPointCameraPrompt": "Enter point to add a picture from the camera",
