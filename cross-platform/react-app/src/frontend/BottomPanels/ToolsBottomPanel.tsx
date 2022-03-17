@@ -4,8 +4,9 @@
 import * as React from "react";
 import classnames from "classnames";
 import { CoreTools, ToolItemDef } from "@itwin/appui-react";
-import { IModelApp, IModelConnection, ToolSettings, ViewClipClearTool, WalkViewTool } from "@itwin/core-frontend";
+import { IModelApp, IModelConnection, Tool, ToolSettings, ViewClipClearTool, WalkViewTool } from "@itwin/core-frontend";
 // import { MeasureToolDefinitions } from "@bentley/measure-tools-react";
+import { Point3d } from "@itwin/core-geometry";
 import {
   assignRef,
   BottomPanel,
@@ -86,10 +87,78 @@ function viewLookAndMoveCommand() {
   });
 }
 
+// Copied from ToolItemDef but fixed so the args work properly. Develoer notified and it will get fixed in iTwin.js 3.0.
+function getItemDefForTool(tool: typeof Tool, iconSpec?: string, ...args: any[]): ToolItemDef {
+  return new ToolItemDef({
+    toolId: tool.toolId,
+    iconSpec: iconSpec ? iconSpec : (tool.iconSpec && tool.iconSpec.length > 0) ? tool.iconSpec : undefined,
+    label: () => tool.flyover,
+    description: () => tool.description,
+    execute: () => { IModelApp.tools.run(tool.toolId, ...args); },
+  });
+}
+
+const addImageMarker = async (point: Point3d, photoLibrary: boolean, iModelId: string) => {
+  const fileUrl = await ImageCache.pickImage(iModelId, photoLibrary);
+  if (fileUrl)
+    ImageMarkerApi.addMarker(point, fileUrl);
+};
+
+class PlacePhotoMarkerTool extends PlaceMarkerTool {
+  public static toolId = "PlacePhotoMarkerTool";
+  public static iconSpec = "icon-image";
+  public static prompt = "";
+  public static enableSnap = false;
+
+  constructor(iModelId: string) {
+    super(async (point: Point3d) => {
+      await addImageMarker(point, true, iModelId);
+    });
+    if (!PlacePhotoMarkerTool.prompt)
+      PlacePhotoMarkerTool.prompt = IModelApp.localization.getLocalizedStringWithNamespace("ReactApp", "ToolsBottomPanel.EnterPointPhotoPrompt");
+  }
+}
+
+class PlaceCameraMarkerTool extends PlaceMarkerTool {
+  public static toolId = "PlaceCameraMarkerTool";
+  public static iconSpec = "icon-camera";
+  public static prompt = "";
+  public static enableSnap = false;
+
+  constructor(iModelId: string) {
+    super(async (point: Point3d) => {
+      await addImageMarker(point, false, iModelId);
+    });
+    if (!PlaceCameraMarkerTool.prompt)
+      PlaceCameraMarkerTool.prompt = IModelApp.localization.getLocalizedStringWithNamespace("ReactApp", "ToolsBottomPanel.EnterPointCameraPrompt");
+  }
+}
+
 export function ToolsBottomPanel(props: ToolsBottomPanelProps) {
-  const { onToolClick, ...others } = props;
+  const { iModel, onToolClick, ...others } = props;
+  const vp = useFirstViewport();
+
+  React.useEffect(() => {
+    if (!vp)
+      return;
+
+    // Register tools if they aren't already registered
+    if (!IModelApp.tools.find(PlacePhotoMarkerTool.toolId))
+      IModelApp.tools.register(PlacePhotoMarkerTool, "ReactApp");
+    if (!IModelApp.tools.find(PlaceCameraMarkerTool.toolId))
+      IModelApp.tools.register(PlaceCameraMarkerTool, "ReactApp");
+
+    ImageMarkerApi.startup(iModel.iModelId);
+
+    return () => {
+      ImageMarkerApi.shutdown();
+    };
+  }, [iModel, vp]);
+
   const tools = React.useMemo(() => [
     { labelKey: "ReactApp:ToolsBottomPanel.Select", icon: "icon-gesture-touch", toolItemDef: CoreTools.selectElementCommand },
+    { labelKey: "ReactApp:ToolsBottomPanel.Picture", icon: "icon-image", toolItemDef: getItemDefForTool(PlacePhotoMarkerTool, undefined, iModel?.iModelId) },
+    { labelKey: "ReactApp:ToolsBottomPanel.Camera", icon: "icon-camera", toolItemDef: getItemDefForTool(PlaceCameraMarkerTool, undefined, iModel?.iModelId) },
     // { labelKey: "ReactApp:ToolsBottomPanel.Distance", icon: "icon-measure-distance", toolItemDef: MeasureToolDefinitions.measureDistanceToolCommand },
     // { labelKey: "ReactApp:ToolsBottomPanel.Location", icon: "icon-measure-location", toolItemDef: MeasureToolDefinitions.measureLocationToolCommand },
     // { labelKey: "ReactApp:ToolsBottomPanel.Area", icon: "icon-measure-2d", toolItemDef: MeasureToolDefinitions.measureAreaToolCommand },
@@ -103,7 +172,7 @@ export function ToolsBottomPanel(props: ToolsBottomPanelProps) {
     { labelKey: "ReactApp:ToolsBottomPanel.SectionByRange", toolItemDef: CoreTools.sectionByRangeCommandItemDef },
     { labelKey: "ReactApp:ToolsBottomPanel.SectionByShape", toolItemDef: CoreTools.sectionByShapeCommandItemDef },
     { labelKey: "ReactApp:ToolsBottomPanel.ClearSection", icon: "icon-section-clear", toolItemDef: ToolItemDef.getItemDefForTool(ViewClipClearTool) },
-  ], []);
+  ], [iModel]);
 
   const activeToolId = useActiveToolId();
   const activeToolIndex = activeToolId !== undefined ? tools.findIndex((tool) => activeToolId === tool.toolItemDef.toolId) : undefined;
