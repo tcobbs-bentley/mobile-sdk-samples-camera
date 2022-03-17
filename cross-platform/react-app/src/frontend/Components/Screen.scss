@@ -1,0 +1,31 @@
+/*---------------------------------------------------------------------------------------------
+* Copyright (c) Bentley Systems, Incorporated. All rights reserved.
+* See LICENSE.md in the project root for license terms and full copyright notice.
+*--------------------------------------------------------------------------------------------*/
+:root {
+  --background-color: white;
+  --background-color-2: var(--muic-gray-9);
+  --color: black;
+}
+
+[preferred-color-scheme = "dark"] {
+  --background-color: var(--muic-gray-2);
+  --background-color-2: var(--muic-gray-4);
+  --color: white;
+}
+
+.screen {
+  background-color: var(--background-color);
+  color: var(--color);
+  width: 100vw;
+  height: 100vh;
+  .mui-navigation-button {
+    color: var(--color);
+    filter: none;
+  }
+}
+
+// Disable selection in all elements except text input fields by default.
+*:not(input[type=text]) {
+  user-select: none;
+}

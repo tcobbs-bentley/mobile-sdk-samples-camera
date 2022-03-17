@@ -8,6 +8,7 @@ import WebKit
 import ITwinMobile
 import PromiseKit
 import UniformTypeIdentifiers
+import ShowTime
 
 /// This app's `ITMApplication` sub-class that handles the messages coming from the web view.
 class ModelApplication: ITMApplication {
@@ -37,6 +38,15 @@ class ModelApplication: ITMApplication {
         registerQueryHandler("getImages", ImageCache.handleGetImages)
         registerQueryHandler("deleteAllImages", ImageCache.handleDeleteAllImages)
         registerQueryHandler("deleteImages", ImageCache.handleDeleteImages)
+        
+        var showtimeEnabled = false
+        if let configData = configData {
+            extractConfigDataToEnv(configData: configData, prefix: "ITMSAMPLE_");
+            showtimeEnabled = configData.isYes("ITMSAMPLE_SHOWTIME_ENABLED")
+        }
+        if !showtimeEnabled {
+            ShowTime.enabled = ShowTime.Enabled.never
+        }
     }
 
     /// Called when the `ITMViewController` will appear.
@@ -50,9 +60,23 @@ class ModelApplication: ITMApplication {
             itmNativeUI.addComponent(ImagePicker(viewController: viewController, itmMessenger: itmMessenger))
             itmNativeUI.addComponent(ImageSharer(viewController: viewController, itmMessenger: itmMessenger))
         }
+        super.viewWillAppear(viewController: viewController)
     }
 
     override class func updateWebViewConfiguration(_ configuration: WKWebViewConfiguration) {
         configuration.setURLSchemeHandler(ImageCacheSchemeHandler(), forURLScheme: ImageCacheSchemeHandler.urlScheme)
+    }
+      
+    override func getUrlHashParams() -> HashParams {
+        var hashParams = super.getUrlHashParams()
+        if let configData = configData {
+            if configData.isYes("ITMSAMPLE_DEBUG_I18N") {
+                hashParams.append(HashParam(name: "debugI18n", value: "YES"))
+            }
+            if configData.isYes("ITMSAMPLE_LOW_RESOLUTION") {
+                hashParams.append(HashParam(name: "lowResolution", value: "YES"))
+            }
+        }
+        return hashParams
     }
 }

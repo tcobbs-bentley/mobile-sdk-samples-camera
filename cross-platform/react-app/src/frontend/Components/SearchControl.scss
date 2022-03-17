@@ -1,0 +1,35 @@
+/*---------------------------------------------------------------------------------------------
+* Copyright (c) Bentley Systems, Incorporated. All rights reserved.
+* See LICENSE.md in the project root for license terms and full copyright notice.
+*--------------------------------------------------------------------------------------------*/
+.search-control {
+  display: flex;
+  align-items: center;
+  margin-left: 8px;
+  margin-right: 8px;
+  margin-bottom: 8px;
+
+  input {
+    flex-grow: 1;
+    font-size: 14px;
+    box-sizing: border-box;
+    height: 38px;
+    padding-left: 13px;
+    padding-right: 13px;
+    margin: 0px;
+    background-color: var(--muic-background);
+    color: var(--muic-foreground-2);
+    border: 1px solid var(--muic-gray-9);
+    border-radius: 60px;
+    &:focus {
+      outline: none;
+    }
+  }
+
+  .search-clear {
+    position: absolute;
+    display: block;
+    right: 8px;
+    color: var(--muic-gray-7);
+  }
+}
