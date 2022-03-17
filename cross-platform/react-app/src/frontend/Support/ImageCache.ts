@@ -1,5 +1,5 @@
 import { Messenger } from "@itwin/mobile-sdk-core";
-import { ImageMarkerApi } from "./Exports";
+import { ImageMarkerApi } from "../Exports";
 
 /**
  * Helper class for dealing with native messages relating to the image cache.

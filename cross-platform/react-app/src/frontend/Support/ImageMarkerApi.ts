@@ -6,7 +6,7 @@ import {
   Point3d,
   XAndY,
   XYAndZ
-} from "@bentley/geometry-core";
+} from "@itwin/core-geometry";
 import {
   BeButton,
   BeButtonEvent,
@@ -19,8 +19,8 @@ import {
   MarkerImage,
   MarkerSet,
   tryImageElementFromUrl
-} from "@bentley/imodeljs-frontend";
-import { getCssVariable, UiEvent } from "@bentley/ui-core";
+} from "@itwin/core-frontend";
+import { getCssVariable, UiEvent } from "@itwin/core-react";
 
 /** Displays a single image Marker at a given world location. */
 class ImageMarker extends Marker {
@@ -163,21 +163,21 @@ abstract class GreedyClusteringMarkerSet<T extends Marker> extends MarkerSet<T> 
    * Sets the cluster's rect by averaging the rects of all the markers in the cluster.
    * @param cluster Cluster to set rect of.
    */
-  protected setClusterRectFromMarkers<T extends Marker>(cluster: Cluster<T>) {
-    const len = cluster.markers.length;
-    if (len > 1) {
-      const midPoint = Point3d.createZero();
-      const size = Point3d.createZero();
-      cluster.markers.forEach((marker) => {
-        const center = new Point2d(marker.rect.left + (marker.rect.width / 2), marker.rect.top + (marker.rect.height / 2));
-        midPoint.addXYZInPlace(center.x, center.y);
-        size.addXYZInPlace(marker.rect.width, marker.rect.height);
-      });
-      midPoint.scaleInPlace(1 / len);
-      size.scaleInPlace(0.5 * (1 / len));
-      cluster.rect.init(midPoint.x - size.x, midPoint.y - size.y, midPoint.x + size.x, midPoint.y + size.y);
-    }
-  }
+  // protected setClusterRectFromMarkers<T extends Marker>(cluster: Cluster<T>) {
+  //   const len = cluster.markers.length;
+  //   if (len > 1) {
+  //     const midPoint = Point3d.createZero();
+  //     const size = Point3d.createZero();
+  //     cluster.markers.forEach((marker) => {
+  //       const center = new Point2d(marker.rect.left + (marker.rect.width / 2), marker.rect.top + (marker.rect.height / 2));
+  //       midPoint.addXYZInPlace(center.x, center.y);
+  //       size.addXYZInPlace(marker.rect.width, marker.rect.height);
+  //     });
+  //     midPoint.scaleInPlace(1 / len);
+  //     size.scaleInPlace(0.5 * (1 / len));
+  //     cluster.rect.init(midPoint.x - size.x, midPoint.y - size.y, midPoint.x + size.x, midPoint.y + size.y);
+  //   }
+  // }
 
   protected clusterMarkers(context: DecorateContext) {
     const vp = context.viewport;
@@ -216,7 +216,7 @@ abstract class GreedyClusteringMarkerSet<T extends Marker> extends MarkerSet<T> 
           clusterMarkers.unshift(marker);
           clusterMarkers.forEach((m) => clustered.add(m));
           const cluster = new Cluster(clusterMarkers);
-          this.setClusterRectFromMarkers(cluster);
+          // this.setClusterRectFromMarkers(cluster);
           entries.push(cluster);
         }
       }

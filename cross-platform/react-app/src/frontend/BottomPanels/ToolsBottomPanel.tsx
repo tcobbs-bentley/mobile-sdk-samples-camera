@@ -4,7 +4,7 @@
 import * as React from "react";
 import classnames from "classnames";
 import { CoreTools, ToolItemDef } from "@itwin/appui-react";
-import { IModelApp, ToolSettings, ViewClipClearTool, WalkViewTool } from "@itwin/core-frontend";
+import { IModelApp, IModelConnection, ToolSettings, ViewClipClearTool, WalkViewTool } from "@itwin/core-frontend";
 // import { MeasureToolDefinitions } from "@bentley/measure-tools-react";
 import {
   assignRef,
@@ -24,7 +24,7 @@ import {
   PlaceMarkerTool,
   ImageCache,
   ImageMarkerApi,
-} from "./Exports";
+} from "../Exports";
 
 import "./ToolsBottomPanel.scss";
 

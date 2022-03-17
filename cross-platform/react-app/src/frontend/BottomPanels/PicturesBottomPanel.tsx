@@ -5,14 +5,14 @@
 import React from "react";
 import ReactDOM from "react-dom";
 import classnames from "classnames";
-import { IModelConnection } from "@bentley/imodeljs-frontend";
+import { IModelConnection } from "@itwin/core-frontend";
 import {
   MobileCore,
   presentYesNoAlert,
   ReloadedEvent,
 } from "@itwin/mobile-sdk-core";
 import { DraggableComponent, NavigationButton, ResizableBottomPanel, ResizableBottomPanelProps, ToolButton, useUiEvent } from "@itwin/mobile-ui-react";
-import { HeaderTitle, i18n, ImageCache, ImageMarkerApi } from "./Exports";
+import { HeaderTitle, i18n, ImageCache, ImageMarkerApi } from "../Exports";
 
 import "./PicturesBottomPanel.scss";
 

@@ -8,8 +8,8 @@ import {
   PrimitiveTool,
   ToolAssistance,
   Viewport
-} from "@bentley/imodeljs-frontend";
-import { Point3d } from "@bentley/geometry-core";
+} from "@itwin/core-frontend";
+import { Point3d } from "@itwin/core-geometry";
 
 export class PlaceMarkerTool extends PrimitiveTool {
   // Sub-classes can override these properties
@@ -29,8 +29,8 @@ export class PlaceMarkerTool extends PrimitiveTool {
   public isCompatibleViewport(vp: Viewport | undefined, isSelectedViewChange: boolean): boolean { return (super.isCompatibleViewport(vp, isSelectedViewChange) && undefined !== vp); }
   public isValidLocation(_ev: BeButtonEvent, _isButtonEvent: boolean): boolean { return true; } // Allow clicking anywhere
   public requireWriteableTarget(): boolean { return false; } // Tool doesn't modify the imodel.
-  public onPostInstall() { super.onPostInstall(); this.setupAndPromptForNextAction(); }
-  public onRestartTool(): void { this.exitTool(); }
+  public async onPostInstall() { super.onPostInstall(); this.setupAndPromptForNextAction(); }
+  public async onRestartTool() { this.exitTool(); }
 
   protected setupAndPromptForNextAction(): void {
     if (this.ctor.enableSnap)
