@@ -13,6 +13,10 @@
 		1FC1115B261FC44900835E6E /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 1FC11159261FC44900835E6E /* Main.storyboard */; };
 		1FC1115D261FC44B00835E6E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 1FC1115C261FC44B00835E6E /* Assets.xcassets */; };
 		1FC11160261FC44B00835E6E /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 1FC1115E261FC44B00835E6E /* LaunchScreen.storyboard */; };
+		1FCEE2B92784F8F30057153D /* ImagePicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FCEE2B52784F8F20057153D /* ImagePicker.swift */; };
+		1FCEE2BA2784F8F30057153D /* ImageCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FCEE2B62784F8F20057153D /* ImageCache.swift */; };
+		1FCEE2BB2784F8F30057153D /* ImageSharer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FCEE2B72784F8F30057153D /* ImageSharer.swift */; };
+		1FCEE2BC2784F8F30057153D /* ImageCacheSchemeHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FCEE2B82784F8F30057153D /* ImageCacheSchemeHandler.swift */; };
 		1FEAE63E271DE401004853E9 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 1FEAE63D271DE401004853E9 /* README.md */; };
 		1FF1B9AC26BDCC35006D6385 /* ITwinMobile in Frameworks */ = {isa = PBXBuildFile; productRef = 1FF1B9AB26BDCC35006D6385 /* ITwinMobile */; };
 		5FD7518D26DD9E3F00DC3060 /* DocumentPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FD7518B26DD9E3F00DC3060 /* DocumentPicker.swift */; };
@@ -23,13 +27,17 @@
 		1F2D7B672742D89000AAB11E /* PrintLogger.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PrintLogger.swift; sourceTree = "<group>"; };
 		1F2ECBF626D467320006AEF0 /* ITMApplication.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = ITMApplication.xcconfig; path = ../ITMApplication.xcconfig; sourceTree = "<group>"; };
 		1FBF081826D44A410078738A /* iOSSamples.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = iOSSamples.xcconfig; path = ../iOSSamples.xcconfig; sourceTree = "<group>"; };
-		1FC11150261FC44900835E6E /* iTwin Starter.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "iTwin Starter.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		1FC11150261FC44900835E6E /* iTwin CamSample.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "iTwin CamSample.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		1FC11153261FC44900835E6E /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		1FC11155261FC44900835E6E /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
 		1FC1115A261FC44900835E6E /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		1FC1115C261FC44B00835E6E /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		1FC1115F261FC44B00835E6E /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		1FC11161261FC44B00835E6E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		1FCEE2B52784F8F20057153D /* ImagePicker.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ImagePicker.swift; sourceTree = "<group>"; };
+		1FCEE2B62784F8F20057153D /* ImageCache.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ImageCache.swift; sourceTree = "<group>"; };
+		1FCEE2B72784F8F30057153D /* ImageSharer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ImageSharer.swift; sourceTree = "<group>"; };
+		1FCEE2B82784F8F30057153D /* ImageCacheSchemeHandler.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ImageCacheSchemeHandler.swift; sourceTree = "<group>"; };
 		1FEAE63D271DE401004853E9 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; name = README.md; path = ../README.md; sourceTree = "<group>"; };
 		5FD7518B26DD9E3F00DC3060 /* DocumentPicker.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DocumentPicker.swift; sourceTree = "<group>"; };
 		5FD7518C26DD9E3F00DC3060 /* ModelApplication.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ModelApplication.swift; sourceTree = "<group>"; };
@@ -61,7 +69,7 @@
 		1FC11151261FC44900835E6E /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				1FC11150261FC44900835E6E /* iTwin Starter.app */,
+				1FC11150261FC44900835E6E /* iTwin CamSample.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -83,6 +91,10 @@
 		5FD7518A26DD9E3F00DC3060 /* Shared */ = {
 			isa = PBXGroup;
 			children = (
+				1FCEE2B62784F8F20057153D /* ImageCache.swift */,
+				1FCEE2B82784F8F30057153D /* ImageCacheSchemeHandler.swift */,
+				1FCEE2B52784F8F20057153D /* ImagePicker.swift */,
+				1FCEE2B72784F8F30057153D /* ImageSharer.swift */,
 				5FD7518B26DD9E3F00DC3060 /* DocumentPicker.swift */,
 				5FD7518C26DD9E3F00DC3060 /* ModelApplication.swift */,
 				1F2D7B672742D89000AAB11E /* PrintLogger.swift */,
@@ -113,7 +125,7 @@
 				1FF1B9AB26BDCC35006D6385 /* ITwinMobile */,
 			);
 			productName = MobileStarter;
-			productReference = 1FC11150261FC44900835E6E /* iTwin Starter.app */;
+			productReference = 1FC11150261FC44900835E6E /* iTwin CamSample.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -215,7 +227,11 @@
 				1FC11154261FC44900835E6E /* AppDelegate.swift in Sources */,
 				5FD7518D26DD9E3F00DC3060 /* DocumentPicker.swift in Sources */,
 				5FD7518E26DD9E3F00DC3060 /* ModelApplication.swift in Sources */,
+				1FCEE2B92784F8F30057153D /* ImagePicker.swift in Sources */,
+				1FCEE2BB2784F8F30057153D /* ImageSharer.swift in Sources */,
 				1F2D7B682742D89000AAB11E /* PrintLogger.swift in Sources */,
+				1FCEE2BC2784F8F30057153D /* ImageCacheSchemeHandler.swift in Sources */,
+				1FCEE2BA2784F8F30057153D /* ImageCache.swift in Sources */,
 				1FC11156261FC44900835E6E /* SceneDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -372,8 +388,8 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.bentley.sample.MobileStarter;
-				PRODUCT_NAME = "iTwin Starter";
+				PRODUCT_BUNDLE_IDENTIFIER = com.bentley.sample.camera;
+				PRODUCT_NAME = "iTwin CamSample";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -391,8 +407,8 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.bentley.sample.MobileStarter;
-				PRODUCT_NAME = "iTwin Starter";
+				PRODUCT_BUNDLE_IDENTIFIER = com.bentley.sample.camera;
+				PRODUCT_NAME = "iTwin CamSample";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
