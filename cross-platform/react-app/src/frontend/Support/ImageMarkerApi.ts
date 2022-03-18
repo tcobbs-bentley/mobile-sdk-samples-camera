@@ -5,7 +5,7 @@ import {
   Point2d,
   Point3d,
   XAndY,
-  XYAndZ
+  XYAndZ,
 } from "@itwin/core-geometry";
 import {
   BeButton,
@@ -18,7 +18,6 @@ import {
   Marker,
   MarkerImage,
   MarkerSet,
-  tryImageElementFromUrl
 } from "@itwin/core-frontend";
 import { getCssVariable, UiEvent } from "@itwin/core-react";
 
@@ -183,56 +182,56 @@ abstract class GreedyClusteringMarkerSet<T extends Marker> extends MarkerSet<T> 
     const vp = context.viewport;
     const entries = this._entries;
 
-      // get the visible markers
-      const visibleMarkers: T[] = [];
-      this.markers.forEach((marker) => {
-        if (marker.setPosition(vp, this)) {
-          visibleMarkers.push(marker);
-        }
-      });
+    // get the visible markers
+    const visibleMarkers: T[] = [];
+    this.markers.forEach((marker) => {
+      if (marker.setPosition(vp, this)) {
+        visibleMarkers.push(marker);
+      }
+    });
 
-      // Greedy clustering algorithm:
-      // - Start with any point from the dataset.
-      // - Find all points within a certain radius around that point.
-      // - Form a new cluster with the nearby points.
-      // - Choose a new point that isn’t part of a cluster, and repeat until we have visited all the points.
-      const distSquared = this.clusterRadius * this.clusterRadius;
-      const clustered = new Set<T>();
+    // Greedy clustering algorithm:
+    // - Start with any point from the dataset.
+    // - Find all points within a certain radius around that point.
+    // - Form a new cluster with the nearby points.
+    // - Choose a new point that isn’t part of a cluster, and repeat until we have visited all the points.
+    const distSquared = this.clusterRadius * this.clusterRadius;
+    const clustered = new Set<T>();
 
-      for (const marker of visibleMarkers) {
-        if (clustered.has(marker))
+    for (const marker of visibleMarkers) {
+      if (clustered.has(marker))
+        continue;
+
+      const clusterMarkers: T[] = [];
+      for (const otherMarker of visibleMarkers) {
+        if (marker === otherMarker || clustered.has(marker))
           continue;
 
-        const clusterMarkers: T[] = [];
-        for (const otherMarker of visibleMarkers) {
-          if (marker === otherMarker || clustered.has(marker))
-            continue;
-
-          if (marker.position.distanceSquaredXY(otherMarker.position) <= distSquared)
-            clusterMarkers.push(otherMarker);
-        }
-
-        if (clusterMarkers.length > 0) {
-          clusterMarkers.unshift(marker);
-          clusterMarkers.forEach((m) => clustered.add(m));
-          const cluster = new Cluster(clusterMarkers);
-          // this.setClusterRectFromMarkers(cluster);
-          entries.push(cluster);
-        }
+        if (marker.position.distanceSquaredXY(otherMarker.position) <= distSquared)
+          clusterMarkers.push(otherMarker);
       }
 
-      // add any unprocessed markers to the entries
-      visibleMarkers.forEach((m) => {
-        if (!clustered.has(m))
-          entries.push(m);
-      });
+      if (clusterMarkers.length > 0) {
+        clusterMarkers.unshift(marker);
+        clusterMarkers.forEach((m) => clustered.add(m));
+        const cluster = new Cluster(clusterMarkers);
+        // this.setClusterRectFromMarkers(cluster);
+        entries.push(cluster);
+      }
+    }
+
+    // add any unprocessed markers to the entries
+    visibleMarkers.forEach((m) => {
+      if (!clustered.has(m))
+        entries.push(m);
+    });
   }
 
   /** This method should be called from [[Decorator.decorate]]. It will add this MarkerSet to the supplied DecorateContext.
    * This method implements the logic that turns overlapping Markers into a Cluster.
    * @param context The DecorateContext for the Markers
    */
-   public addDecoration(context: DecorateContext): void {
+  public addDecoration(context: DecorateContext): void {
     const vp = context.viewport;
     if (vp !== this.viewport) {
       return; // not viewport of this MarkerSet, ignore it
@@ -412,7 +411,7 @@ export class ImageMarkerApi {
   }
 
   public static async addMarker(point: Point3d, fileUrl: string) {
-    const image = await tryImageElementFromUrl(fileUrl);
+    const image = await tryImageElementFromUrl(fileUrl, true);
     if (image) {
       ImageLocations.setLocation(fileUrl, point);
       this._decorator?.addMarker(point, image, fileUrl);
@@ -430,5 +429,53 @@ export class ImageMarkerApi {
   public static deleteMarkers(iModelId: string | undefined) {
     ImageLocations.clearLocations(iModelId);
     this._decorator?.clearMarkers();
+  }
+}
+
+/**
+ * !!!!!!!!!!!!!!!!!!!!!!!! NOTE !!!!!!!!!!!!!!!!!!!!!!!!
+ * The following two functions (imageElementFromUrl and tryImageElementFromUrl) were copied
+ * from core-frontend in order to prevent a cross origin check. The line of code that causes
+ * problems is here:
+ * https://github.com/iTwin/itwinjs-core/blob/5562afe6d456f406c8fa70f518ccd7d01d118580/core/frontend/src/ImageUtil.ts#L207
+ * With that line of code present, the app either fails to load the image or crashes (due to an
+ * apparent bug in iOS that will be reported separately).
+ * I created a PR on core-frontend to add the skipCrossOriginCheck argument. Once that change is
+ * in a release that we use, we can remove these functions and use core-frontend again.
+ */
+
+/** Create an html Image element from a URL.
+ * @param url The URL pointing to the image data.
+ * @returns A Promise resolving to an HTMLImageElement when the image data has been loaded from the URL.
+ * @see tryImageElementFromUrl.
+ * @public
+ */
+async function imageElementFromUrl(url: string, skipCrossOriginCheck = false): Promise<HTMLImageElement> {
+  // We must set crossorigin property so that images loaded from same origin can be used with texImage2d.
+  // We must do that outside of the promise constructor or it won't work, for reasons.
+  const image = new Image();
+  if (!skipCrossOriginCheck) {
+    image.crossOrigin = "anonymous";
+  }
+  return new Promise((resolve: (image: HTMLImageElement) => void, reject) => {
+    image.onload = () => resolve(image);
+
+    // The "error" produced by Image is not an Error. It looks like an Event, but isn't one.
+    image.onerror = () => reject(new Error("Failed to create image from url"));
+    image.src = url;
+  });
+}
+
+/** Try to create an html Image element from a URL.
+ * @param url The URL pointing to the image data.
+ * @returns A Promise resolving to an HTMLImageElement when the image data has been loaded from the URL, or to `undefined` if an exception occurred.
+ * @see imageElementFromUrl
+ * @public
+ */
+async function tryImageElementFromUrl(url: string, skipCrossOriginCheck = false): Promise<HTMLImageElement | undefined> {
+  try {
+    return await imageElementFromUrl(url, skipCrossOriginCheck);
+  } catch {
+    return undefined;
   }
 }

@@ -29,8 +29,8 @@ export class PlaceMarkerTool extends PrimitiveTool {
   public isCompatibleViewport(vp: Viewport | undefined, isSelectedViewChange: boolean): boolean { return (super.isCompatibleViewport(vp, isSelectedViewChange) && undefined !== vp); }
   public isValidLocation(_ev: BeButtonEvent, _isButtonEvent: boolean): boolean { return true; } // Allow clicking anywhere
   public requireWriteableTarget(): boolean { return false; } // Tool doesn't modify the imodel.
-  public async onPostInstall() { super.onPostInstall(); this.setupAndPromptForNextAction(); }
-  public async onRestartTool() { this.exitTool(); }
+  public async onPostInstall() { await super.onPostInstall(); this.setupAndPromptForNextAction(); }
+  public async onRestartTool() { await this.exitTool(); }
 
   protected setupAndPromptForNextAction(): void {
     if (this.ctor.enableSnap)
