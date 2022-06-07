@@ -16,8 +16,8 @@
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "1FC1114F261FC44900835E6E"
                BuildableName = "iTwin CamSample.app"
-               BlueprintName = "MobileStarter"
-               ReferencedContainer = "container:LocalSDK_MobileStarter.xcodeproj">
+               BlueprintName = "CameraSample"
+               ReferencedContainer = "container:LocalSDK_CameraSample.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -46,8 +46,8 @@
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "1FC1114F261FC44900835E6E"
             BuildableName = "iTwin CamSample.app"
-            BlueprintName = "MobileStarter"
-            ReferencedContainer = "container:LocalSDK_MobileStarter.xcodeproj">
+            BlueprintName = "CameraSample"
+            ReferencedContainer = "container:LocalSDK_CameraSample.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </LaunchAction>
@@ -63,8 +63,8 @@
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "1FC1114F261FC44900835E6E"
             BuildableName = "iTwin CamSample.app"
-            BlueprintName = "MobileStarter"
-            ReferencedContainer = "container:LocalSDK_MobileStarter.xcodeproj">
+            BlueprintName = "CameraSample"
+            ReferencedContainer = "container:LocalSDK_CameraSample.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>
