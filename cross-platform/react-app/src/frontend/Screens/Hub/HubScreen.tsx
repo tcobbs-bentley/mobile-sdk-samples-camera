@@ -3,11 +3,11 @@
 * See LICENSE.md in the project root for license terms and full copyright notice.
 *--------------------------------------------------------------------------------------------*/
 import React from "react";
-import { AlertAction, ITMAuthorizationClient, MobileCore } from "@itwin/mobile-sdk-core";
+import { AlertAction, MobileCore } from "@itwin/mobile-sdk-core";
 import { ActionSheetButton, BackButton, useIsMountedRef } from "@itwin/mobile-ui-react";
 import { Project } from "@itwin/projects-client";
-import { BriefcaseConnection, IModelApp, IModelConnection } from "@itwin/core-frontend";
-import { Button, i18n, presentError, Screen, IModelInfo, IModelPicker, IModelDownloader, ProjectPicker, SignIn } from "../../Exports";
+import { BriefcaseConnection, IModelConnection } from "@itwin/core-frontend";
+import { Button, i18n, IModelDownloader, IModelInfo, IModelPicker, presentError, ProjectPicker, Screen, SignIn } from "../../Exports";
 import "./HubScreen.scss";
 
 HubScreen.ACTIVE_PROJECT_INFO = "activeProjectInfo";
@@ -15,7 +15,7 @@ HubScreen.ACTIVE_PROJECT_INFO = "activeProjectInfo";
 function getActiveProject() {
   const projectInfoJson = localStorage.getItem(HubScreen.ACTIVE_PROJECT_INFO);
   if (projectInfoJson) {
-    let project = JSON.parse(projectInfoJson);
+    const project = JSON.parse(projectInfoJson);
     if (project.id) {
       // The format of the project object changed in iTwin 3. Since the id field is required, return
       // undefined if our stored project does not have a value for that field.
@@ -32,7 +32,7 @@ function saveActiveProject(project: Project) {
 }
 
 enum HubStep {
-  SignIn,
+  SignIn, // eslint-disable-line @typescript-eslint/no-shadow
   SelectProject,
   SelectIModel,
   DownloadIModel,
@@ -80,7 +80,7 @@ export function HubScreen(props: HubScreenProps) {
           setInitialized(true);
         }}
         onError={() => setHubStep(HubStep.Error)}
-      />
+      />;
       break;
 
     case HubStep.SelectProject:
@@ -98,10 +98,11 @@ export function HubScreen(props: HubScreenProps) {
     case HubStep.SelectIModel:
       if (!project) break;
       stepContent = <IModelPicker project={project}
-        onLoaded={(models) => setHaveCachedBriefcase(models.some(model => model.briefcase !== undefined))}
+        onLoaded={(models) => setHaveCachedBriefcase(models.some((model) => model.briefcase !== undefined))}
         onSelect={(model) => {
           setIModel(model);
           if (model.briefcase)
+            // eslint-disable-next-line @typescript-eslint/no-floating-promises
             onOpen(model.briefcase.fileName, BriefcaseConnection.openFile(model.briefcase));
           else
             setHubStep(HubStep.DownloadIModel);
@@ -113,10 +114,12 @@ export function HubScreen(props: HubScreenProps) {
             // deletion (assuming that's even possible).
             // Switch to project selection.
             setHubStep(HubStep.SelectProject);
-          }
-          else {
+          } else {
             setHubStep(HubStep.Error);
           }
+        }}
+        onCacheDeleted={(modelInfo) => {
+          ModelNameCache.remove(modelInfo.minimalIModel.id);
         }}
       />;
       const actions: AlertAction[] = [];
@@ -127,7 +130,8 @@ export function HubScreen(props: HubScreenProps) {
           onSelected: async () => {
             if (!project) return;
             try {
-              await MobileCore.deleteCachedBriefcases(project.id);
+              const deleted = await MobileCore.deleteCachedBriefcases(project.id);
+              deleted.forEach((briefcase) => ModelNameCache.remove(briefcase.iModelId));
               if (!isMountedRef.current) return;
               setHaveCachedBriefcase(false);
             } catch (error) {
@@ -136,14 +140,14 @@ export function HubScreen(props: HubScreenProps) {
               presentError("DeleteAllErrorFormat", error, "HubScreen");
               setProject({ ...project });
             }
-          }
+          },
         });
       }
       actions.push({
         name: "changeProject",
         title: changeProjectLabel,
         onSelected: () => setHubStep(HubStep.SelectProject),
-      })
+      });
       moreButton = <ActionSheetButton actions={actions} showStatusBar />;
       break;
 
@@ -155,6 +159,8 @@ export function HubScreen(props: HubScreenProps) {
         onDownloaded={(model) => {
           setIModel(model);
           if (model.briefcase) {
+            ModelNameCache.set(model.minimalIModel.id, model.minimalIModel.displayName);
+            // eslint-disable-next-line @typescript-eslint/no-floating-promises
             onOpen(model.briefcase.fileName, BriefcaseConnection.openFile(model.briefcase));
           } else {
             setHubStep(HubStep.SelectIModel);
@@ -167,29 +173,36 @@ export function HubScreen(props: HubScreenProps) {
     case HubStep.Error:
       stepContent = <div className="centered-list">
         <Button title={signOutLabel} onClick={async () => {
-          if (IModelApp.authorizationClient instanceof ITMAuthorizationClient) {
-            try {
-              await IModelApp.authorizationClient.signOut();
-            } catch (error) {
-              console.log(`Error signing out: ${error}`);
-            }
-          }
           onBack();
         }} />
-      </div>
+      </div>;
       break;
   }
 
   return (
-    <Screen>
-      <div className="hub-screen">
-        <div className="title">
-          <BackButton onClick={() => hubStep === HubStep.DownloadIModel ? setHubStep(HubStep.SelectIModel) : onBack()} />
-          <div className="title-text">{titleLabels.get(hubStep)}</div>
-          <div className="right-tools-parent">{moreButton}</div>
-        </div>
-        {stepContent}
+    <Screen className="hub-screen">
+      <div className="title">
+        <BackButton onClick={() => hubStep === HubStep.DownloadIModel ? setHubStep(HubStep.SelectIModel) : onBack()} />
+        <div className="title-text">{titleLabels.get(hubStep)}</div>
+        <div className="right-tools-parent">{moreButton}</div>
       </div>
+      {stepContent}
     </Screen >
   );
+}
+
+export class ModelNameCache {
+  private static MODEL_ID_PREFIX = "modelIdToName_";
+
+  public static get(modelId: string) {
+    return localStorage.getItem(this.MODEL_ID_PREFIX + modelId);
+  }
+
+  public static set(modelId: string, modelName: string) {
+    localStorage.setItem(this.MODEL_ID_PREFIX + modelId, modelName);
+  }
+
+  public static remove(modelId: string) {
+    localStorage.removeItem(this.MODEL_ID_PREFIX + modelId);
+  }
 }

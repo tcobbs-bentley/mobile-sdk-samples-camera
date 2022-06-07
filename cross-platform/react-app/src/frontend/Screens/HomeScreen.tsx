@@ -11,10 +11,10 @@ import "./HomeScreen.scss";
 export enum ActiveScreen {
   Loading,
   Home,
-  Snapshots,
+  LocalModels,
   Hub,
   Model,
-};
+}
 
 /// Properties for [[HomeScreen]] React component.
 export interface HomeScreenProps {
@@ -27,7 +27,7 @@ export interface HomeScreenProps {
 export function HomeScreen(props: HomeScreenProps) {
   const { onSelect, showBackButton } = props;
   const homeLabel = React.useMemo(() => i18n("HomeScreen", "Home"), []);
-  const snapshotIModelsLabel = React.useMemo(() => i18n("HomeScreen", "SnapshotIModels"), []);
+  const localModelsLabel = React.useMemo(() => i18n("HomeScreen", "LocalIModels"), []);
   const hubIModelsLabel = React.useMemo(() => i18n("HomeScreen", "HubIModels"), []);
 
   const handleBack = React.useCallback(async () => {
@@ -35,17 +35,15 @@ export function HomeScreen(props: HomeScreenProps) {
   }, []);
 
   return (
-    <Screen>
-      <div className="home-screen">
-        <div className="title">
-          {showBackButton && <BackButton onClick={handleBack} />}
-          <div className="title-text">{homeLabel}</div>
-        </div>
-        <div className="list">
-          <div className="list-items">
-            <Button title={snapshotIModelsLabel} onClick={() => onSelect(ActiveScreen.Snapshots)} />
-            <Button title={hubIModelsLabel} onClick={() => onSelect(ActiveScreen.Hub)} />
-          </div>
+    <Screen className="home-screen">
+      <div className="title">
+        {showBackButton && <BackButton onClick={handleBack} />}
+        <div className="title-text">{homeLabel}</div>
+      </div>
+      <div className="list">
+        <div className="list-items">
+          <Button title={localModelsLabel} onClick={() => onSelect(ActiveScreen.LocalModels)} />
+          <Button title={hubIModelsLabel} onClick={() => onSelect(ActiveScreen.Hub)} />
         </div>
       </div>
     </Screen>

@@ -17,7 +17,7 @@ import {
 import { ViewportComponent } from "@itwin/imodel-components-react";
 import { getCssVariable, IconSpec } from "@itwin/core-react";
 import { viewWithUnifiedSelection } from "@itwin/presentation-components";
-import { AlertAction, presentAlert } from "@itwin/mobile-sdk-core";
+import { ActionSheetGravity, AlertAction, presentAlert } from "@itwin/mobile-sdk-core";
 import { useTheme } from "@itwin/itwinui-react";
 import {
   ActionSheetButton,
@@ -95,6 +95,7 @@ export function ModelScreen(props: ModelScreenProps) {
       navigator.geolocation.getCurrentPosition((position: GeolocationPosition) => {
         const latitude = position.coords.latitude;
         const longitude = position.coords.longitude;
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
         presentAlert({
           title: locationLabel,
           message: i18n("ModelScreen", "LocationFormat", { latitude, longitude }),
@@ -103,9 +104,10 @@ export function ModelScreen(props: ModelScreenProps) {
             name: "ok",
             title: okLabel,
           }],
-        })
+        });
       }, (positionError: GeolocationPositionError) => {
         const error = positionError.message;
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
         presentAlert({
           title: errorLabel,
           message: i18n("ModelScreen", "LocationErrorFormat", { error }),
@@ -114,12 +116,12 @@ export function ModelScreen(props: ModelScreenProps) {
             name: "ok",
             title: okLabel,
           }],
-        })
+        });
       });
     };
     const handleFitView = () => {
-      IModelApp.tools.run(FitViewTool.toolId, IModelApp.viewManager.getFirstOpenView(), true);
-    }
+      IModelApp.tools.run(FitViewTool.toolId, IModelApp.viewManager.getFirstOpenView(), true); // eslint-disable-line @typescript-eslint/no-floating-promises
+    };
     const actions: AlertAction[] =
       [
         {
@@ -141,19 +143,20 @@ export function ModelScreen(props: ModelScreenProps) {
           name: "toggleCamera",
           title: toggleCameraLabel,
           onSelected: toggleCamera,
-        }
+        },
       ];
 
     if (IModelApp.viewManager.getFirstOpenView()?.view.iModel.selectionSet.isActive) {
-      actions.push({
-        name: elementPropertiesLabel,
-        title: elementPropertiesLabel,
-        onSelected: () => { tabsAndPanelsAPI.openPanel(elementPropertiesLabel) },
-      });
+      actions.push(
+        {
+          name: elementPropertiesLabel,
+          title: elementPropertiesLabel,
+          onSelected: () => { tabsAndPanelsAPI.openPanel(elementPropertiesLabel); },
+        });
     }
     return actions;
   };
-  const moreButton = <ActionSheetButton actions={moreActions} showStatusBar />
+  const moreButton = <ActionSheetButton actions={moreActions} showStatusBar gravity={ActionSheetGravity.BottomRight} />;
   const panels: TabOrPanelDef[] = [
     {
       label: infoLabel,
@@ -162,12 +165,12 @@ export function ModelScreen(props: ModelScreenProps) {
         key="info"
         name={iModel.name}
         filename={filename}
-      />
+      />,
     },
     {
       label: aboutLabel,
       isTab: true,
-      popup: <AboutBottomPanel key="about" />
+      popup: <AboutBottomPanel key="about" />,
     },
     {
       label: toolsLabel,
@@ -177,7 +180,7 @@ export function ModelScreen(props: ModelScreenProps) {
         iModel={iModel}
         // Close the Views bottom panel when a view is selected from it.
         onToolClick={() => { tabsAndPanelsAPI.closeSelectedPanel(); }}
-      />
+      />,
     },
     {
       label: viewsLabel,
@@ -187,12 +190,12 @@ export function ModelScreen(props: ModelScreenProps) {
         iModel={iModel}
         // Close the Views bottom panel when a view is selected from it.
         onViewSelected={() => { tabsAndPanelsAPI.closeSelectedPanel(); }}
-      />
+      />,
     },
     {
       label: picturesLabel,
       isTab: true,
-      popup: <PicturesBottomPanel key="pictures" iModel={iModel} onPictureSelected={(url) => setSelectedPictureUrl(url)} />
+      popup: <PicturesBottomPanel key="pictures" iModel={iModel} onPictureSelected={(url) => setSelectedPictureUrl(url)} />,
     },
     {
       label: elementPropertiesLabel,
@@ -205,7 +208,7 @@ export function ModelScreen(props: ModelScreenProps) {
           tabsAndPanelsAPI.closeSelectedPanel();
           return tabsAndPanelsAPI.autoCloseHandler();
         }}
-      />
+      />,
     },
   ];
 
@@ -213,9 +216,9 @@ export function ModelScreen(props: ModelScreenProps) {
 
   // Update the model background color when the color scheme changes.
   useBeEvent(() => {
-    const viewState = IModelApp.viewManager.getFirstOpenView()?.view;
-    if (viewState) {
-      updateBackgroundColor(viewState);
+    const firstOpenView = IModelApp.viewManager.getFirstOpenView()?.view;
+    if (firstOpenView) {
+      updateBackgroundColor(firstOpenView);
     }
   }, MobileUi.onColorSchemeChanged);
 
@@ -223,7 +226,7 @@ export function ModelScreen(props: ModelScreenProps) {
     try {
       const opts: ViewCreator3dOptions = {
         standardViewId: StandardViewId.RightIso,
-      }
+      };
       const vc = new ViewCreator3d(iModel);
       const defaultViewState = await vc.createDefaultView(opts);
       if (!isMountedRef.current) return;
@@ -236,12 +239,12 @@ export function ModelScreen(props: ModelScreenProps) {
   }, [iModel, isMountedRef]);
 
   const toggleCamera = React.useCallback(() => {
-    IModelApp.tools.run(ViewToggleCameraTool.toolId, IModelApp.viewManager.getFirstOpenView());
+    IModelApp.tools.run(ViewToggleCameraTool.toolId, IModelApp.viewManager.getFirstOpenView()); // eslint-disable-line @typescript-eslint/no-floating-promises
   }, []);
 
   // Effect to apply the default view state after component is loaded.
   React.useEffect(() => {
-    applyDefaultView();
+    applyDefaultView(); // eslint-disable-line @typescript-eslint/no-floating-promises
   }, [applyDefaultView]);
 
   // The useTheme hook below does not currently detect theme changes on the fly if "os" is

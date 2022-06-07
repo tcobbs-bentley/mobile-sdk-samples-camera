@@ -54,19 +54,19 @@ class ModelApplication: ITMApplication {
     /// Adds our DocumentPicker component to the native UI collection.
     /// - Parameter viewController: The view controller.
     override func viewWillAppear(viewController: ITMViewController) {
+        super.viewWillAppear(viewController: viewController)
         if let itmNativeUI = viewController.itmNativeUI {
             let itmMessenger = ITMViewController.application.itmMessenger
             itmNativeUI.addComponent(DocumentPicker(viewController: viewController, itmMessenger: itmMessenger))
             itmNativeUI.addComponent(ImagePicker(viewController: viewController, itmMessenger: itmMessenger))
             itmNativeUI.addComponent(ImageSharer(viewController: viewController, itmMessenger: itmMessenger))
         }
-        super.viewWillAppear(viewController: viewController)
     }
 
     override class func updateWebViewConfiguration(_ configuration: WKWebViewConfiguration) {
         configuration.setURLSchemeHandler(ImageCacheSchemeHandler(), forURLScheme: ImageCacheSchemeHandler.urlScheme)
     }
-      
+
     override func getUrlHashParams() -> HashParams {
         var hashParams = super.getUrlHashParams()
         if let configData = configData {

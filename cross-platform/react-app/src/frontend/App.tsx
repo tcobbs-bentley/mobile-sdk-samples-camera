@@ -5,59 +5,44 @@
 import React from "react";
 import { combineReducers, createStore, Store } from "redux";
 import { IOSApp, IOSAppOpts } from "@itwin/core-mobile/lib/cjs/MobileFrontend";
-import { AuthorizationClient } from "@itwin/core-common";
-import { IModelApp, IModelConnection, IpcApp, SnapshotConnection, ToolAssistanceInstructions } from "@itwin/core-frontend";
+import { IModelApp, IModelConnection, SnapshotConnection, ToolAssistanceInstructions } from "@itwin/core-frontend";
 import { AppNotificationManager, FrameworkReducer, FrameworkState, UiFramework } from "@itwin/appui-react";
 import { Presentation } from "@itwin/presentation-frontend";
-import { ITMAuthorizationClient, Messenger, MobileCore } from "@itwin/mobile-sdk-core";
+import { Messenger, MobileCore } from "@itwin/mobile-sdk-core";
 import { MobileUi } from "@itwin/mobile-ui-react";
 // import { FeatureTracking as MeasureToolsFeatureTracking, MeasureTools } from "@bentley/measure-tools-react";
-import { ActiveScreen, HomeScreen, HubScreen, LoadingScreen, ModelScreen, presentError, SnapshotsScreen, ToolAssistance } from "./Exports";
+import { ActiveScreen, HomeScreen, HubScreen, LoadingScreen, LocalModelsScreen, ModelScreen, presentError, ToolAssistance } from "./Exports";
 import { getSupportedRpcs } from "../common/rpcs";
-import { TokenServerAuthClient } from "../common/TokenServerAuthClient";
-import { samplesIpcChannel } from "../common/SamplesIpc";
 import "./App.scss";
 
 declare global {
   interface Window {
     /// Custom field on the window object that stores the settings that get passed via URL hash parameters.
     itmSampleParams: {
-      lowResolution: boolean,
-      thirdPartyAuth: boolean,
-      haveBackButton: boolean,
-      debugI18n: boolean,
-      tokenServerUrl?: string,
-      tokenServerIdToken?: string,
-    }
+      lowResolution: boolean;
+      haveBackButton: boolean;
+      debugI18n: boolean;
+    };
   }
 }
 
 // Initialize all boolean URL has parameters to false. (String parameters default to undefined.)
 window.itmSampleParams = {
   lowResolution: false,
-  thirdPartyAuth: false,
   haveBackButton: false,
   debugI18n: false,
 };
 
 /// Load the given boolean UrlSearchParam into the custom field on the window object.
-function loadBooleanUrlSearchParam(name: "lowResolution" | "thirdPartyAuth" | "haveBackButton" | "debugI18n") {
+function loadBooleanUrlSearchParam(name: "lowResolution" | "haveBackButton" | "debugI18n") {
   window.itmSampleParams[name] = MobileCore.getUrlSearchParam(name) === "YES";
-}
-
-/// Load the given string UrlSearchParam into the custom field on the window object.
-function loadStringUrlSearchParam(name: "tokenServerUrl" | "tokenServerIdToken") {
-  window.itmSampleParams[name] = MobileCore.getUrlSearchParam(name);
 }
 
 /// Load the values stored in the URL hash params into the custom field on the window object.
 function loadUrlSearchParams() {
   loadBooleanUrlSearchParam("lowResolution");
-  loadBooleanUrlSearchParam("thirdPartyAuth");
   loadBooleanUrlSearchParam("haveBackButton");
   loadBooleanUrlSearchParam("debugI18n");
-  loadStringUrlSearchParam("tokenServerUrl");
-  loadStringUrlSearchParam("tokenServerIdToken");
 }
 
 /// Interface to allow switching from one screen to another.
@@ -76,51 +61,13 @@ const rootReducer = combineReducers({
   frameworkState: FrameworkReducer,
 });
 const anyWindow: any = window;
+// eslint-disable-next-line deprecation/deprecation
 const appReduxStore: Store<RootState> = createStore(rootReducer, anyWindow.__REDUX_DEVTOOLS_EXTENSION__ && anyWindow.__REDUX_DEVTOOLS_EXTENSION__());
 
 class AppToolAssistanceNotificationManager extends AppNotificationManager {
   public setToolAssistance(instructions: ToolAssistanceInstructions | undefined): void {
     ToolAssistance.onSetToolAssistance.emit(instructions);
     super.setToolAssistance(instructions);
-  }
-}
-
-function createAuthorizationClient(): AuthorizationClient {
-  // Only try to use the token server if thirdPartyAuth is "YES". Otherwise users would have
-  // to remove their token server settings from ITMApplication.xcconfig in order to run the
-  // other samples. The ThirdPartyAuth sample sets the thirdPartyAuth has param to "YES".
-  if (window.itmSampleParams.thirdPartyAuth) {
-    const tokenServerUrl = window.itmSampleParams.tokenServerUrl;
-    const tokenServerIdToken = window.itmSampleParams.tokenServerIdToken;
-    // With the current ThirdPartyAuth sample, we will always have the ID token if we have the
-    // token server URL, but that is not required in order for this code to work.
-    if (tokenServerUrl) {
-      // Any time the native code refreshes its ID token, it sends the new one using
-      // the "setTokenServerToken" message. Update our ID token when that happens.
-      Messenger.onQuery("setTokenServerToken").setHandler(async (token: string) => {
-        return setTokenServerToken(token);
-      });
-      return new TokenServerAuthClient(tokenServerUrl, tokenServerIdToken);
-    } else {
-      throw new Error("The ThirdPartyAuth sample requires the ITMSAMPLE_TOKEN_SERVER_URL environment variable to be set.");
-    }
-  }
-  return new ITMAuthorizationClient();
-}
-
-async function setTokenServerToken(token: string) {
-  if (IModelApp.authorizationClient instanceof TokenServerAuthClient) {
-    // Update the frontend auth client with the new ID token.
-    IModelApp.authorizationClient.tokenServerIdToken = token;
-    // Update the backend auth client with the new ID token.
-    return IpcApp.callIpcChannel(samplesIpcChannel, "setTokenServerToken", token);
-  }
-}
-
-async function updateTokenServerToken() {
-  const tokenServerIdToken = window.itmSampleParams.tokenServerIdToken;
-  if (tokenServerIdToken) {
-    setTokenServerToken(tokenServerIdToken);
   }
 }
 
@@ -142,7 +89,7 @@ function App() {
     // function for the new active screen. The activeScreen variable (set after updating the activeStack)
     // tracks the current active screen.
     setActiveStack((old) => {
-      return [...old, { activeScreen: activeScreen, cleanup }];
+      return [...old, { activeScreen, cleanup }];
     });
     // Set the new screen as active.
     setActiveScreen(screen);
@@ -162,19 +109,41 @@ function App() {
           iModelApp: {
             rpcInterfaces: getSupportedRpcs(),
             notifications: new AppToolAssistanceNotificationManager(),
-            authorizationClient: createAuthorizationClient(),
           },
+        };
+        if (window.itmSampleParams.lowResolution) {
+          // Improves FPS on really slow devices and iOS simulator.
+          // Shader compilation still causes one-time slowness when interacting with model.
+
+          // Note: Seemingly every other build the ! below goes from being required to not allowed.
+          // The underlying types don't change, and yet sometimes TypeScript states that
+          // opts.iModelApp is an optional value (which it is in IpcAppOptions), and sometimes
+          // states that the ! is unnecessary. Since it keeps breaking the build for no reason,
+          // I am including the !, and adding an eslint comment to disable the associated warning.
+          // I am 99% sure that a TypeScript compiler bug is causing this inconsistent behavior.
+          // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+          opts.iModelApp!.renderSys = {
+            devicePixelRatioOverride: 0.25, // Reduce resolution
+            dpiAwareLOD: true, // Reduce tile LOD for low resolution
+          };
         }
         if (window.itmSampleParams.lowResolution) {
           // Improves FPS on really slow devices and iOS simulator.
           // Shader compilation still causes one-time slowness when interacting with model.
+
+          // Note: Seemingly every other build the ! below goes from being required to not allowed.
+          // The underlying types don't change, and yet sometimes TypeScript states that
+          // opts.iModelApp is an optional value (which it is in IpcAppOptions), and sometimes
+          // states that the ! is unnecessary. Since it keeps breaking the build for no reason,
+          // I am including the !, and adding an eslint comment to disable the associated warning.
+          // I am 99% sure that a TypeScript compiler bug is causing this inconsistent behavior.
+          // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
           opts.iModelApp!.renderSys = {
             devicePixelRatioOverride: 0.25, // Reduce resolution
             dpiAwareLOD: true, // Reduce tile LOD for low resolution
           };
         }
         await IOSApp.startup(opts);
-        await updateTokenServerToken();
         await UiFramework.initialize(appReduxStore);
         await Presentation.initialize();
         await MobileUi.initialize(IModelApp.localization);
@@ -190,14 +159,14 @@ function App() {
         pushActiveInfo(ActiveScreen.Home);
         console.log("...Done Initializing.");
       } catch (ex) {
-        console.log("Exception during initialization: " + ex);
+        console.log(`Exception during initialization: ${ex}`);
       }
     };
     // This React hooks runs more than once, despite attempts to prevent that. So use initialized
     // to prevent it from initializing more than once.
     if (!initialized) {
       setInitialized(true);
-      initialize();
+      initialize(); // eslint-disable-line @typescript-eslint/no-floating-promises
     }
   }, [pushActiveInfo, initialized]);
 
@@ -264,7 +233,7 @@ function App() {
           // switched to undefined.
           setOpenUrlPath(modelPath);
         } else {
-          handleOpen(modelPath, SnapshotConnection.openFile(modelPath));
+          handleOpen(modelPath, SnapshotConnection.openFile(modelPath)); // eslint-disable-line @typescript-eslint/no-floating-promises
         }
       });
     }
@@ -275,26 +244,26 @@ function App() {
   React.useEffect(() => {
     if (iModel === undefined && openUrlPath) {
       // Get a local copy of openUrlPath.
-      const modelPath = "" + openUrlPath;
+      const modelPath = `${openUrlPath}`;
       // Clear openUrlPath before doing anything else.
       setOpenUrlPath(undefined);
       const openFunc = async () => {
         // Open the requested snapshot iModel.
-        handleOpen(modelPath, SnapshotConnection.openFile(modelPath));
-      }
-      openFunc();
+        handleOpen(modelPath, SnapshotConnection.openFile(modelPath)); // eslint-disable-line @typescript-eslint/no-floating-promises
+      };
+      openFunc(); // eslint-disable-line @typescript-eslint/no-floating-promises
     }
   }, [iModel, openUrlPath, handleOpen]);
 
   switch (activeScreen) {
     case ActiveScreen.Home:
       return <HomeScreen onSelect={handleHomeSelect} showBackButton={haveBackButton} />;
-    case ActiveScreen.Snapshots:
-      return <SnapshotsScreen onOpen={handleOpen} onBack={handleBack} />;
+    case ActiveScreen.LocalModels:
+      return <LocalModelsScreen onOpen={handleOpen} onBack={handleBack} />;
     case ActiveScreen.Hub:
       return <HubScreen onOpen={handleOpen} onBack={handleBack} />;
     case ActiveScreen.Model:
-      return <ModelScreen filename={modelFilename} iModel={iModel!} onBack={handleBack} />
+      return <ModelScreen filename={modelFilename} iModel={iModel!} onBack={handleBack} />;
     default:
       return <LoadingScreen />;
   }

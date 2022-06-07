@@ -11,7 +11,7 @@ export * from "./App";
 export * from "./Components/Button";
 export * from "./Components/Screen";
 export * from "./Screens/LoadingScreen";
-export * from "./Screens/SnapshotsScreen";
+export * from "./Screens/LocalModelsScreen";
 export * from "./Screens/ModelScreen";
 export * from "./BottomPanels/InfoBottomPanel";
 export * from "./BottomPanels/AboutBottomPanel";

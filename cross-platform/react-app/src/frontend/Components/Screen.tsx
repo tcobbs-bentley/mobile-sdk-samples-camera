@@ -3,6 +3,7 @@
 * See LICENSE.md in the project root for license terms and full copyright notice.
 *--------------------------------------------------------------------------------------------*/
 import React from "react";
+import classnames from "classnames";
 import { IModelApp } from "@itwin/core-frontend";
 import { ProgressInfo } from "@itwin/core-frontend/lib/cjs/request/Request";
 import { presentAlert } from "@itwin/mobile-sdk-core";
@@ -12,13 +13,14 @@ import "./Screen.scss";
 
 /// Properties for the [[Screen]] React component.
 export interface ScreenProps {
+  className?: string;
   /// The optional children of this full-screen component.
   children?: React.ReactNode;
 }
 
 export function i18n(prefix: string, key: string, options?: any) {
   if (window.itmSampleParams.debugI18n) {
-    return "=" + IModelApp.localization.getLocalizedStringWithNamespace("ReactApp", `${prefix}.${key}`, options) + "=";
+    return `=${IModelApp.localization.getLocalizedStringWithNamespace("ReactApp", `${prefix}.${key}`, options)}=`;
   } else {
     return IModelApp.localization.getLocalizedStringWithNamespace("ReactApp", `${prefix}.${key}`, options);
   }
@@ -28,7 +30,7 @@ export function roundedNumber(input: number, decimals?: number) {
   if (decimals === undefined) {
     decimals = 2;
   }
-  let decimalSeparator = (1.2).toLocaleString().indexOf(",") === -1 ? "." : ",";
+  const decimalSeparator = (1.2).toLocaleString().indexOf(",") === -1 ? "." : ",";
   let rounded = input.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: decimals });
   let len = rounded.length;
   if (len > 0) {
@@ -73,22 +75,23 @@ export function progressString(progress: ProgressInfo | undefined) {
       return "";
     }
   }
-  return " (" + percent + "%)";
+  return ` (${percent}%)`;
 }
 
-
 /// React component for a simple full-screen UI with arbitrary children.
-export function Screen(props?: ScreenProps) {
+export function Screen(props: ScreenProps = {}) {
   const isDark = useActiveColorSchemeIsDark();
+  const { className, children } = props;
 
   // The useTheme hook below does not currently detect theme changes on the fly if "os" is
   // set as the theme.
   useTheme(isDark ? "dark" : "light");
-  return <div className="screen">{props?.children}</div>
+  return <div className={classnames("screen", className)}>{children}</div>;
 }
 
 export function presentError(formatKey: string, error: any, namespace = "App", showStatusBar = true) {
   const errorMessage = (error instanceof Error) ? error.message : error;
+  // eslint-disable-next-line @typescript-eslint/no-floating-promises
   presentAlert({
     title: i18n("Shared", "Error"),
     message: i18n(namespace, formatKey, { error: errorMessage }),

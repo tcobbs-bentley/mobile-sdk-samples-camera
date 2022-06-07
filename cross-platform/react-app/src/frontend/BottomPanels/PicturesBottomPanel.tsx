@@ -25,7 +25,7 @@ export interface PicturesBottomPanelProps extends ResizableBottomPanelProps {
 }
 
 /** [[ResizableBottomPanel]] React component that allows the user to take pictures with the device's camera.
- * 
+ *
  * Shows the pictures that have been taken for the selected iModel. Allows the user to take more, as well as
  * delete individual pictures or all pictures.
  */
@@ -56,10 +56,10 @@ export function PicturesBottomPanel(props: PicturesBottomPanelProps) {
   }, [iModel]);
 
   React.useEffect(() => {
-    reload();
+    reload(); // eslint-disable-line @typescript-eslint/no-floating-promises
   }, [reload]);
 
-  useUiEvent(() => reload(), ImageMarkerApi.onMarkerAdded);
+  useUiEvent(async () => reload(), ImageMarkerApi.onMarkerAdded);
 
   const togglePictureSelected = React.useCallback((pictureUrl: string) => {
     setSelectedUrls((previousSelectedUrls) => {
@@ -69,7 +69,7 @@ export function PicturesBottomPanel(props: PicturesBottomPanelProps) {
       else
         newSelected.add(pictureUrl);
       return newSelected;
-    })
+    });
   }, []);
 
   const handlePictureClick = React.useCallback((pictureUrl: string) => {
@@ -91,7 +91,7 @@ export function PicturesBottomPanel(props: PicturesBottomPanelProps) {
           className="share-button"
           iconSpec={getShareIcon()}
           onClick={(e) => {
-            ImageCache.shareImages([pictureUrl], e.currentTarget.parentElement?.getBoundingClientRect());
+            ImageCache.shareImages([pictureUrl], e.currentTarget.parentElement?.getBoundingClientRect()); // eslint-disable-line @typescript-eslint/no-floating-promises
           }}
         />}
         {!selectMode && <NavigationButton
@@ -100,7 +100,7 @@ export function PicturesBottomPanel(props: PicturesBottomPanelProps) {
           onClick={async () => {
             if (await presentYesNoAlert(deletePictureTitle, deletePictureMessage, true)) {
               await ImageCache.deleteImages([pictureUrl]);
-              reload();
+              reload(); // eslint-disable-line @typescript-eslint/no-floating-promises
             }
           }}
         />}
@@ -129,12 +129,12 @@ export function PicturesBottomPanel(props: PicturesBottomPanelProps) {
       {!selectMode && <>
         <ToolButton iconSpec={"icon-camera"} onClick={async () => {
           if (await ImageCache.pickImage(iModel.iModelId)) {
-            reload();
+            reload(); // eslint-disable-line @typescript-eslint/no-floating-promises
           }
         }} />
         <ToolButton iconSpec={"icon-image"} onClick={async () => {
           if (await ImageCache.pickImage(iModel.iModelId, true)) {
-            reload();
+            reload(); // eslint-disable-line @typescript-eslint/no-floating-promises
           }
         }} />
         <NavigationButton iconSpec="icon-visibility" noShadow
@@ -153,7 +153,7 @@ export function PicturesBottomPanel(props: PicturesBottomPanelProps) {
         }} />
         <ToolButton iconSpec={getShareIcon()} enabled={selectedUrls.size > 0}
           onClick={(e) => {
-            ImageCache.shareImages(Array.from(selectedUrls), e.currentTarget.getBoundingClientRect());
+            ImageCache.shareImages(Array.from(selectedUrls), e.currentTarget.getBoundingClientRect()); // eslint-disable-line @typescript-eslint/no-floating-promises
           }} />
         <ToolButton
           iconSpec={"icon-delete"}
@@ -162,10 +162,10 @@ export function PicturesBottomPanel(props: PicturesBottomPanelProps) {
             const all = pictureUrls.length === selectedUrls.size;
             if (all && await presentYesNoAlert(deleteAllTitle, deleteAllMessage, true)) {
               await ImageCache.deleteAllImages(iModel.iModelId);
-              reload();
+              reload(); // eslint-disable-line @typescript-eslint/no-floating-promises
             } else if (!all && await presentYesNoAlert(deleteSelectedTitle, deleteSelectedMessage, true)) {
               await ImageCache.deleteImages(Array.from(selectedUrls));
-              reload();
+              reload(); // eslint-disable-line @typescript-eslint/no-floating-promises
             }
           }}
         />
@@ -204,8 +204,8 @@ export interface PictureViewProps {
 export function PictureView(props: PictureViewProps) {
   const { url, onClick } = props;
   const portalDiv = (
-    <div className="picture-view">
-      <img src={url} onClick={onClick} alt="" />
+    <div className="picture-view" onClick={onClick}>
+      <img src={url} alt="" />
     </div>
   );
   const rootElement = document.getElementById("root");

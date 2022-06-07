@@ -4,9 +4,8 @@
 import * as React from "react";
 import classnames from "classnames";
 import { CoreTools, ToolItemDef } from "@itwin/appui-react";
-import { IModelApp, IModelConnection, Tool, ToolSettings, ViewClipClearTool, WalkViewTool } from "@itwin/core-frontend";
+import { IModelApp, IModelConnection, ToolSettings, ViewClipClearTool, WalkViewTool } from "@itwin/core-frontend";
 // import { MeasureToolDefinitions } from "@bentley/measure-tools-react";
-import { Point3d } from "@itwin/core-geometry";
 import {
   assignRef,
   BottomPanel,
@@ -22,10 +21,11 @@ import {
   useScrolling,
 } from "@itwin/mobile-ui-react";
 import {
-  PlaceMarkerTool,
   ImageCache,
   ImageMarkerApi,
+  PlaceMarkerTool,
 } from "../Exports";
+import { Point3d } from "@itwin/core-geometry";
 
 import "./ToolsBottomPanel.scss";
 
@@ -53,6 +53,7 @@ export const ButtonRow = React.forwardRef((props: ButtonRowProps, ref: MutableHt
     </HorizontalScrollableWithFades>
   );
 });
+ButtonRow.displayName = "ButtonRow";
 
 export interface ActiveButtonRowProps extends ButtonRowProps {
   activeIndex?: number;
@@ -67,6 +68,8 @@ export const ActiveButtonRow = React.forwardRef((props: ActiveButtonRowProps, re
 
   return <ButtonRow ref={makeRefHandler(ref, divRef)} {...others} />;
 });
+
+ActiveButtonRow.displayName = "ActiveButtonRow";
 
 export interface ToolsBottomPanelProps extends BottomPanelProps {
   /// The loaded iModel.
@@ -87,21 +90,10 @@ function viewLookAndMoveCommand() {
   });
 }
 
-// Copied from ToolItemDef but fixed so the args work properly. Develoer notified and it will get fixed in iTwin.js 3.0.
-function getItemDefForTool(tool: typeof Tool, iconSpec?: string, ...args: any[]): ToolItemDef {
-  return new ToolItemDef({
-    toolId: tool.toolId,
-    iconSpec: iconSpec ? iconSpec : (tool.iconSpec && tool.iconSpec.length > 0) ? tool.iconSpec : undefined,
-    label: () => tool.flyover,
-    description: () => tool.description,
-    execute: () => { IModelApp.tools.run(tool.toolId, ...args); },
-  });
-}
-
 const addImageMarker = async (point: Point3d, photoLibrary: boolean, iModelId: string) => {
   const fileUrl = await ImageCache.pickImage(iModelId, photoLibrary);
   if (fileUrl)
-    ImageMarkerApi.addMarker(point, fileUrl);
+    ImageMarkerApi.addMarker(point, fileUrl); // eslint-disable-line @typescript-eslint/no-floating-promises
 };
 
 class PlacePhotoMarkerTool extends PlaceMarkerTool {
@@ -157,8 +149,8 @@ export function ToolsBottomPanel(props: ToolsBottomPanelProps) {
 
   const tools = React.useMemo(() => [
     { labelKey: "ReactApp:ToolsBottomPanel.Select", icon: "icon-gesture-touch", toolItemDef: CoreTools.selectElementCommand },
-    { labelKey: "ReactApp:ToolsBottomPanel.Picture", icon: "icon-image", toolItemDef: getItemDefForTool(PlacePhotoMarkerTool, undefined, iModel?.iModelId) },
-    { labelKey: "ReactApp:ToolsBottomPanel.Camera", icon: "icon-camera", toolItemDef: getItemDefForTool(PlaceCameraMarkerTool, undefined, iModel?.iModelId) },
+    { labelKey: "ReactApp:ToolsBottomPanel.Picture", icon: "icon-image", toolItemDef: ToolItemDef.getItemDefForTool(PlacePhotoMarkerTool, undefined, iModel?.iModelId) },
+    { labelKey: "ReactApp:ToolsBottomPanel.Camera", icon: "icon-camera", toolItemDef: ToolItemDef.getItemDefForTool(PlaceCameraMarkerTool, undefined, iModel?.iModelId) },
     // { labelKey: "ReactApp:ToolsBottomPanel.Distance", icon: "icon-measure-distance", toolItemDef: MeasureToolDefinitions.measureDistanceToolCommand },
     // { labelKey: "ReactApp:ToolsBottomPanel.Location", icon: "icon-measure-location", toolItemDef: MeasureToolDefinitions.measureLocationToolCommand },
     // { labelKey: "ReactApp:ToolsBottomPanel.Area", icon: "icon-measure-2d", toolItemDef: MeasureToolDefinitions.measureAreaToolCommand },
@@ -203,7 +195,7 @@ export function ToolsBottomPanel(props: ToolsBottomPanelProps) {
           onClick={async () => {
             // Ensure the selectedView is the main viewport otherwise some tools won't execute as the selected view is incompatible.
             // This only applies when an app has more than one viewport, but does no harm.
-            IModelApp.viewManager.setSelectedView(IModelApp.viewManager.getFirstOpenView());
+            IModelApp.viewManager.setSelectedView(IModelApp.viewManager.getFirstOpenView()); // eslint-disable-line @typescript-eslint/no-floating-promises
 
             value.toolItemDef.execute();
             onToolClick?.();

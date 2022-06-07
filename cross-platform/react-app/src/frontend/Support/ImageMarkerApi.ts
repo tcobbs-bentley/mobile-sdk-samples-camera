@@ -19,7 +19,8 @@ import {
   MarkerImage,
   MarkerSet,
 } from "@itwin/core-frontend";
-import { getCssVariable, UiEvent } from "@itwin/core-react";
+import { BeUiEvent } from "@itwin/core-bentley";
+import { getCssVariable } from "@itwin/core-react";
 
 /** Displays a single image Marker at a given world location. */
 class ImageMarker extends Marker {
@@ -108,7 +109,7 @@ class BadgedImageMarker extends ImageMarker {
       const x = this.labelOffset ? -this.labelOffset.x : 0;
       const y = this.labelOffset ? -this.labelOffset.y : 0;
 
-      //draw the badge background
+      // draw the badge background
       const fontHeight = metrics.fontBoundingBoxAscent + metrics.fontBoundingBoxDescent;
       const actualHeight = metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent;
       const measuredHeight = (actualHeight > 0 ? actualHeight : fontHeight);
@@ -118,7 +119,7 @@ class BadgedImageMarker extends ImageMarker {
       ctx.fillStyle = BadgedImageMarker.activeColor;
       this.drawPill(ctx, x, y, width, height);
 
-      //draw the badge number
+      // draw the badge number
       ctx.fillStyle = this.labelColor ? this.labelColor : "white";
       ctx.fillText(text, x, y);
     }
@@ -144,7 +145,7 @@ class BadgedImageMarker extends ImageMarker {
  */
 abstract class GreedyClusteringMarkerSet<T extends Marker> extends MarkerSet<T> {
   /// The radius (in pixels) for clustering markers, default 150.
-  clusterRadius = 150;
+  protected clusterRadius = 150;
 
   /**
    * Gets the average of the cluster markers worldLocation.
@@ -270,14 +271,14 @@ abstract class GreedyClusteringMarkerSet<T extends Marker> extends MarkerSet<T> 
 }
 
 class ImageMarkerSet extends GreedyClusteringMarkerSet<ImageMarker> {
-  clusterRadius = 150;
+  protected clusterRadius = 150;
 
   protected getClusterMarker(cluster: Cluster<ImageMarker>): Marker {
     return new BadgedImageMarker(this.getAverageLocation(cluster), cluster.markers[0].size, cluster);
   }
 
   public addMarker(point: Point3d, image: HTMLImageElement, url: string) {
-    this.markers.add(new ImageMarker(point, Point2d.createZero(), url, image, (url: string) => ImageMarkerApi.onMarkerClick.emit(url)));
+    this.markers.add(new ImageMarker(point, Point2d.createZero(), url, image, (urlParam: string) => ImageMarkerApi.onMarkerClick.emit(urlParam)));
     IModelApp.viewManager.selectedView?.invalidateDecorations();
   }
 
@@ -302,7 +303,7 @@ class ImageMarkerDecorator implements Decorator {
 
   public addMarker(point: Point3d, image: HTMLImageElement, url: string) {
     if (!this._markerSet)
-      this._markerSet = new ImageMarkerSet()
+      this._markerSet = new ImageMarkerSet();
     this._markerSet.addMarker(point, image, url);
   }
 
@@ -371,8 +372,8 @@ class ImageLocations {
 export class ImageMarkerApi {
   private static _decorator?: ImageMarkerDecorator;
 
-  public static onMarkerClick = new UiEvent<string>();
-  public static onMarkerAdded = new UiEvent<string>();
+  public static onMarkerClick = new BeUiEvent<string>();
+  public static onMarkerAdded = new BeUiEvent<string>();
 
   public static startup(iModelId?: string, enabled = true) {
     this._decorator = new ImageMarkerDecorator();
@@ -383,7 +384,7 @@ export class ImageMarkerApi {
     this._decorator?.clearMarkers();
     const locations = ImageLocations.getLocations(iModelId);
     for (const [url, location] of locations) {
-      this.addMarker(location, url);
+      this.addMarker(location, url); // eslint-disable-line @typescript-eslint/no-floating-promises
     }
   }
 
