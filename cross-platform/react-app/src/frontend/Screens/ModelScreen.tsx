@@ -33,7 +33,21 @@ import {
   useUiEvent,
   VisibleBackButton,
 } from "@itwin/mobile-ui-react";
-import { AboutBottomPanel, ElementPropertiesPanel, i18n, ImageMarkerApi, InfoBottomPanel, PicturesBottomPanel, PictureView, presentError, ToolAssistance, ToolsBottomPanel, ViewsBottomPanel } from "../Exports";
+import {
+  AboutBottomPanel,
+  ElementPropertiesPanel,
+  i18n,
+  InfoBottomPanel,
+  presentError,
+  ToolAssistance,
+  ToolsBottomPanel,
+  ViewsBottomPanel,
+} from "../Exports";
+import {
+  ImageMarkerApi,
+  PicturesBottomPanel,
+  PictureView,
+} from "../CameraSample/Exports";
 import "./ModelScreen.scss";
 
 // tslint:disable-next-line: variable-name

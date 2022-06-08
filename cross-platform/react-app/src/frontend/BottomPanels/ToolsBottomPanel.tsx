@@ -24,7 +24,7 @@ import {
   ImageCache,
   ImageMarkerApi,
   PlaceMarkerTool,
-} from "../Exports";
+} from "../CameraSample/Exports";
 import { Point3d } from "@itwin/core-geometry";
 
 import "./ToolsBottomPanel.scss";

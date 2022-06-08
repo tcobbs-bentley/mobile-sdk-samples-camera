@@ -12,7 +12,8 @@ import {
   ReloadedEvent,
 } from "@itwin/mobile-sdk-core";
 import { DraggableComponent, NavigationButton, ResizableBottomPanel, ResizableBottomPanelProps, ToolButton, useUiEvent } from "@itwin/mobile-ui-react";
-import { HeaderTitle, i18n, ImageCache, ImageMarkerApi } from "../Exports";
+import { HeaderTitle, i18n } from "../Exports";
+import { ImageCache, ImageMarkerApi } from "./Exports";
 
 import "./PicturesBottomPanel.scss";
 
