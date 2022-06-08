@@ -18,7 +18,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         guard let _ = (scene as? UIWindowScene) else { return }
         
         // Use our ModelApplication (a subclass of ITMApplication) as the application object.
-        ITMViewController.application = ModelApplication()
+        ITMViewController.application = CamModelApplication()
 
         // Delay the automatic loading of the frontend and backend to account for problem when
         // that happens before the application's first willEnterForeground.

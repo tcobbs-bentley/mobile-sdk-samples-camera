@@ -278,7 +278,7 @@ class ImageMarkerSet extends GreedyClusteringMarkerSet<ImageMarker> {
   }
 
   public addMarker(point: Point3d, image: HTMLImageElement, url: string) {
-    this.markers.add(new ImageMarker(point, Point2d.createZero(), url, image, (urlParam: string) => ImageMarkerApi.onMarkerClick.emit(urlParam)));
+    this.markers.add(new ImageMarker(point, Point2d.createZero(), url, image, (urlParam: string) => ImageMarkerApi.onImageSelected.emit(urlParam)));
     IModelApp.viewManager.selectedView?.invalidateDecorations();
   }
 
@@ -372,7 +372,7 @@ class ImageLocations {
 export class ImageMarkerApi {
   private static _decorator?: ImageMarkerDecorator;
 
-  public static onMarkerClick = new BeUiEvent<string>();
+  public static onImageSelected = new BeUiEvent<string>();
   public static onMarkerAdded = new BeUiEvent<string>();
 
   public static startup(iModelId?: string, enabled = true) {

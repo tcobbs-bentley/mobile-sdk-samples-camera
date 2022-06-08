@@ -30,7 +30,6 @@ import {
   useBeEvent,
   useIsMountedRef,
   useTabsAndStandAlonePanels,
-  useUiEvent,
   VisibleBackButton,
 } from "@itwin/mobile-ui-react";
 import {
@@ -44,9 +43,9 @@ import {
   ViewsBottomPanel,
 } from "../Exports";
 import {
-  ImageMarkerApi,
+  CameraSampleMain,
+  CameraSampleToolsBottomPanel,
   PicturesBottomPanel,
-  PictureView,
 } from "../CameraSample/Exports";
 import "./ModelScreen.scss";
 
@@ -72,6 +71,10 @@ export function updateBackgroundColor(viewState: ViewState) {
   displayStyle.backgroundColor = ColorDef.fromString(bgColor);
 }
 
+function getToolsBottomPanelFunction() {
+  return window.itmSampleParams.isCameraSample ? CameraSampleToolsBottomPanel : ToolsBottomPanel;
+}
+
 /// React component showing the iModel and containing UI for interacting with it.
 export function ModelScreen(props: ModelScreenProps) {
   const tabsAndPanelsAPI = useTabsAndStandAlonePanels();
@@ -91,9 +94,6 @@ export function ModelScreen(props: ModelScreenProps) {
   const picturesLabel = React.useMemo(() => i18n("ModelScreen", "Pictures"), []);
   const toolsLabel = React.useMemo(() => i18n("ModelScreen", "Tools"), []);
   const elementPropertiesLabel = React.useMemo(() => i18n("ModelScreen", "Properties"), []);
-  const [selectedPictureUrl, setSelectedPictureUrl] = React.useState<string>();
-
-  useUiEvent((url) => setSelectedPictureUrl(url), ImageMarkerApi.onMarkerClick);
 
   // Any time we do anything asynchronous, we have to check if the component is still mounted,
   // or it can lead to a run-time exception.
@@ -189,12 +189,12 @@ export function ModelScreen(props: ModelScreenProps) {
     {
       label: toolsLabel,
       isTab: true,
-      popup: <ToolsBottomPanel
-        key="tools"
-        iModel={iModel}
+      popup: React.createElement(getToolsBottomPanelFunction(), {
+        key: "tools",
+        iModel,
         // Close the Views bottom panel when a view is selected from it.
-        onToolClick={() => { tabsAndPanelsAPI.closeSelectedPanel(); }}
-      />,
+        onToolClick: () => { tabsAndPanelsAPI.closeSelectedPanel(); },
+      }),
     },
     {
       label: viewsLabel,
@@ -205,11 +205,6 @@ export function ModelScreen(props: ModelScreenProps) {
         // Close the Views bottom panel when a view is selected from it.
         onViewSelected={() => { tabsAndPanelsAPI.closeSelectedPanel(); }}
       />,
-    },
-    {
-      label: picturesLabel,
-      isTab: true,
-      popup: <PicturesBottomPanel key="pictures" iModel={iModel} onPictureSelected={(url) => setSelectedPictureUrl(url)} />,
     },
     {
       label: elementPropertiesLabel,
@@ -225,6 +220,14 @@ export function ModelScreen(props: ModelScreenProps) {
       />,
     },
   ];
+
+  if (window.itmSampleParams.isCameraSample) {
+    panels.push({
+      label: picturesLabel,
+      isTab: true,
+      popup: <PicturesBottomPanel key="pictures" iModel={iModel} />,
+    });
+  }
 
   tabsAndPanelsAPI.setPanels(panels);
 
@@ -289,10 +292,7 @@ export function ModelScreen(props: ModelScreenProps) {
           }
         />
         <ToolAssistance />
-        {selectedPictureUrl && <PictureView url={selectedPictureUrl} onClick={(e: React.MouseEvent<HTMLDivElement>) => {
-          e.stopPropagation();
-          setSelectedPictureUrl(undefined);
-        }} />}
+        {window.itmSampleParams.isCameraSample && <CameraSampleMain />}
         {tabsAndPanelsAPI.renderTabBarAndPanels()}
       </MobileUiContent >
     </>

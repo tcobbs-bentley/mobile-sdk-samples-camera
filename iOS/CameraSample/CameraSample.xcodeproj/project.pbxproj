@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		1F2D7B682742D89000AAB11E /* PrintLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F2D7B672742D89000AAB11E /* PrintLogger.swift */; };
+		1F7460EA2851307E00CAFA54 /* CamModelApplication.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F7460E92851307E00CAFA54 /* CamModelApplication.swift */; };
 		1FC11154261FC44900835E6E /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FC11153261FC44900835E6E /* AppDelegate.swift */; };
 		1FC11156261FC44900835E6E /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FC11155261FC44900835E6E /* SceneDelegate.swift */; };
 		1FC1115B261FC44900835E6E /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 1FC11159261FC44900835E6E /* Main.storyboard */; };
@@ -27,6 +28,7 @@
 /* Begin PBXFileReference section */
 		1F2D7B672742D89000AAB11E /* PrintLogger.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PrintLogger.swift; sourceTree = "<group>"; };
 		1F2ECBF626D467320006AEF0 /* ITMApplication.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = ITMApplication.xcconfig; path = ../ITMApplication.xcconfig; sourceTree = "<group>"; };
+		1F7460E92851307E00CAFA54 /* CamModelApplication.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CamModelApplication.swift; sourceTree = "<group>"; };
 		1FBF081826D44A410078738A /* iOSSamples.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = iOSSamples.xcconfig; path = ../iOSSamples.xcconfig; sourceTree = "<group>"; };
 		1FC11150261FC44900835E6E /* iTwin CamSample.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "iTwin CamSample.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		1FC11153261FC44900835E6E /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -81,6 +83,7 @@
 			children = (
 				5FD7518A26DD9E3F00DC3060 /* Shared */,
 				1FC11153261FC44900835E6E /* AppDelegate.swift */,
+				1F7460E92851307E00CAFA54 /* CamModelApplication.swift */,
 				1FC11155261FC44900835E6E /* SceneDelegate.swift */,
 				1FC11159261FC44900835E6E /* Main.storyboard */,
 				1FC1115C261FC44B00835E6E /* Assets.xcassets */,
@@ -235,6 +238,7 @@
 				1FCEE2BB2784F8F30057153D /* ImageSharer.swift in Sources */,
 				1F2D7B682742D89000AAB11E /* PrintLogger.swift in Sources */,
 				1FCEE2BC2784F8F30057153D /* ImageCacheSchemeHandler.swift in Sources */,
+				1F7460EA2851307E00CAFA54 /* CamModelApplication.swift in Sources */,
 				1FCEE2BA2784F8F30057153D /* ImageCache.swift in Sources */,
 				1FC11156261FC44900835E6E /* SceneDelegate.swift in Sources */,
 			);

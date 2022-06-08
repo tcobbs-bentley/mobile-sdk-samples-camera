@@ -21,8 +21,6 @@ import "./PicturesBottomPanel.scss";
 export interface PicturesBottomPanelProps extends ResizableBottomPanelProps {
   /// The loaded iModel.
   iModel: IModelConnection;
-  /// Optional callback that is called after a picture is selected.
-  onPictureSelected?: (pictureUrl: string) => void;
 }
 
 /** [[ResizableBottomPanel]] React component that allows the user to take pictures with the device's camera.
@@ -31,7 +29,7 @@ export interface PicturesBottomPanelProps extends ResizableBottomPanelProps {
  * delete individual pictures or all pictures.
  */
 export function PicturesBottomPanel(props: PicturesBottomPanelProps) {
-  const { iModel, onPictureSelected, ...otherProps } = props;
+  const { iModel, ...otherProps } = props;
   const picturesLabel = React.useMemo(() => i18n("PicturesBottomPanel", "Pictures"), []);
   const reloadedEvent = React.useRef(new ReloadedEvent());
   const [pictureUrls, setPictureUrls] = React.useState<string[]>([]);
@@ -77,9 +75,9 @@ export function PicturesBottomPanel(props: PicturesBottomPanelProps) {
     if (selectMode) {
       togglePictureSelected(pictureUrl);
     } else {
-      onPictureSelected?.(pictureUrl);
+      ImageMarkerApi.onImageSelected.emit(pictureUrl);
     }
-  }, [onPictureSelected, selectMode, togglePictureSelected]);
+  }, [selectMode, togglePictureSelected]);
 
   const getShareIcon = () => MobileCore.isIosPlatform ? "icon-upload" : "icon-share";
 
