@@ -35,9 +35,6 @@ class ModelApplication: ITMApplication {
                 return Promise.value(DocumentHelper.getDocumentsWith(extension: "bim"))
             }
         }
-        registerQueryHandler("getImages", ImageCache.handleGetImages)
-        registerQueryHandler("deleteAllImages", ImageCache.handleDeleteAllImages)
-        registerQueryHandler("deleteImages", ImageCache.handleDeleteImages)
         
         var showtimeEnabled = false
         if let configData = configData {
@@ -55,16 +52,7 @@ class ModelApplication: ITMApplication {
     /// - Parameter viewController: The view controller.
     override func viewWillAppear(viewController: ITMViewController) {
         super.viewWillAppear(viewController: viewController)
-        if let itmNativeUI = viewController.itmNativeUI {
-            let itmMessenger = ITMViewController.application.itmMessenger
-            itmNativeUI.addComponent(DocumentPicker(viewController: viewController, itmMessenger: itmMessenger))
-            itmNativeUI.addComponent(ImagePicker(viewController: viewController, itmMessenger: itmMessenger))
-            itmNativeUI.addComponent(ImageSharer(viewController: viewController, itmMessenger: itmMessenger))
-        }
-    }
-
-    override class func updateWebViewConfiguration(_ configuration: WKWebViewConfiguration) {
-        configuration.setURLSchemeHandler(ImageCacheSchemeHandler(), forURLScheme: ImageCacheSchemeHandler.urlScheme)
+        viewController.itmNativeUI?.addComponent(DocumentPicker(viewController: viewController, itmMessenger: ITMViewController.application.itmMessenger))
     }
 
     override func getUrlHashParams() -> HashParams {

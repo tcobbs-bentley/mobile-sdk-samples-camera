@@ -84,6 +84,10 @@
 				5FD7518A26DD9E3F00DC3060 /* Shared */,
 				1FC11153261FC44900835E6E /* AppDelegate.swift */,
 				1F7460E92851307E00CAFA54 /* CamModelApplication.swift */,
+				1FCEE2B62784F8F20057153D /* ImageCache.swift */,
+				1FCEE2B82784F8F30057153D /* ImageCacheSchemeHandler.swift */,
+				1FCEE2B52784F8F20057153D /* ImagePicker.swift */,
+				1FCEE2B72784F8F30057153D /* ImageSharer.swift */,
 				1FC11155261FC44900835E6E /* SceneDelegate.swift */,
 				1FC11159261FC44900835E6E /* Main.storyboard */,
 				1FC1115C261FC44B00835E6E /* Assets.xcassets */,
@@ -96,10 +100,6 @@
 		5FD7518A26DD9E3F00DC3060 /* Shared */ = {
 			isa = PBXGroup;
 			children = (
-				1FCEE2B62784F8F20057153D /* ImageCache.swift */,
-				1FCEE2B82784F8F30057153D /* ImageCacheSchemeHandler.swift */,
-				1FCEE2B52784F8F20057153D /* ImagePicker.swift */,
-				1FCEE2B72784F8F30057153D /* ImageSharer.swift */,
 				5FD7518B26DD9E3F00DC3060 /* DocumentPicker.swift */,
 				5FD7518C26DD9E3F00DC3060 /* ModelApplication.swift */,
 				1F2D7B672742D89000AAB11E /* PrintLogger.swift */,
